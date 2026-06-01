@@ -31,3 +31,7 @@ export async function apiLogout(): Promise<void> {
 export async function getMe(): Promise<UserResponse> {
   return apiFetch('/auth/me');
 }
+
+export async function checkSetup(): Promise<{ setup_required: boolean }> {
+  return apiFetch('/auth/setup');
+}

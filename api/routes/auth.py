@@ -8,11 +8,22 @@ from auth import hash_password, verify_password, create_access_token, revoke_ses
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+@router.get("/setup")
+def setup_status(db: Session = Depends(get_db)):
+    """Public endpoint — returns whether the initial admin account still needs to be created."""
+    return {"setup_required": db.query(User).count() == 0}
+
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(body: UserRegister, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == body.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-    user = User(email=body.email, hashed_password=hash_password(body.password))
+    is_first_user = db.query(User).count() == 0
+    user = User(
+        email=body.email,
+        hashed_password=hash_password(body.password),
+        is_admin=is_first_user,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)

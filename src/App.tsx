@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { Plant } from './types/plant';
 import { T, Toast } from './components';
 import { useBreakpoint } from './hooks/useBreakpoint';
-import { getToken, getMe, apiLogout } from './api/auth';
+import { getToken, getMe, apiLogout, checkSetup } from './api/auth';
 import { fetchPlants, apiWaterPlant } from './api/plants';
 import { AuthScreen } from './screens/AuthScreen';
 
@@ -34,17 +34,24 @@ export default function App() {
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const [token, setToken] = useState<string | null>(getToken);
-  const [authChecking, setAuthChecking] = useState(!!getToken());
+  const [authChecking, setAuthChecking] = useState(true);
+  const [setupRequired, setSetupRequired] = useState(false);
 
   const isDesktop = useBreakpoint(700);
 
   useEffect(() => {
-    if (!token) return;
-    getMe()
-      .then(() => fetchPlants())
-      .then(setPlants)
-      .catch(() => setToken(null))
-      .finally(() => setAuthChecking(false));
+    if (token) {
+      getMe()
+        .then(() => fetchPlants())
+        .then(setPlants)
+        .catch(() => setToken(null))
+        .finally(() => setAuthChecking(false));
+    } else {
+      checkSetup()
+        .then(({ setup_required }) => setSetupRequired(setup_required))
+        .catch(() => {})
+        .finally(() => setAuthChecking(false));
+    }
   }, []);
 
   const flash = (msg: string) => {
@@ -55,6 +62,7 @@ export default function App() {
 
   const handleAuth = (newToken: string) => {
     setToken(newToken);
+    setSetupRequired(false);
     fetchPlants().then(setPlants);
   };
 
@@ -111,7 +119,7 @@ export default function App() {
   }
 
   if (!token) {
-    return <AuthScreen onAuth={handleAuth} />;
+    return <AuthScreen onAuth={handleAuth} isFirstRun={setupRequired} />;
   }
 
   if (isDesktop) {

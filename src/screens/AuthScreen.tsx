@@ -4,10 +4,11 @@ import { login, register, saveToken } from '../api/auth';
 
 interface Props {
   onAuth: (token: string) => void;
+  isFirstRun?: boolean;
 }
 
-export function AuthScreen({ onAuth }: Props) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
+  const [mode, setMode] = useState<'login' | 'register'>(isFirstRun ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -43,37 +44,51 @@ export function AuthScreen({ onAuth }: Props) {
       background: T.paper, padding: '0 24px',
     }}>
       <div style={{ width: '100%', maxWidth: 380 }}>
+
         {/* Logo */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 40 }}>
           <img src="/rootly-mark.svg" alt="Rootly" style={{ width: 48, height: 48, marginBottom: 12 }} />
           <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 28, color: T.ink }}>Rootly</div>
-          <div style={{ fontFamily: T.sans, fontSize: 14, color: T.ink3, marginTop: 4 }}>
-            Grow from the root up.
-          </div>
+          {isFirstRun ? (
+            <>
+              <div style={{ fontFamily: T.sans, fontSize: 15, fontWeight: 600, color: T.fern, marginTop: 6 }}>
+                First run — set up your admin account
+              </div>
+              <div style={{ fontFamily: T.sans, fontSize: 13, color: T.ink3, marginTop: 4, textAlign: 'center' }}>
+                The first account created becomes the admin.
+              </div>
+            </>
+          ) : (
+            <div style={{ fontFamily: T.sans, fontSize: 14, color: T.ink3, marginTop: 4 }}>
+              Grow from the root up.
+            </div>
+          )}
         </div>
 
-        {/* Mode toggle */}
-        <div style={{
-          display: 'flex', background: T.linen, borderRadius: 12,
-          padding: 4, marginBottom: 28, gap: 4,
-        }}>
-          {(['login', 'register'] as const).map(m => (
-            <button
-              key={m}
-              onClick={() => { setMode(m); setError(''); }}
-              style={{
-                flex: 1, fontFamily: T.sans, fontWeight: 600, fontSize: 14,
-                padding: '9px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
-                background: mode === m ? T.card : 'transparent',
-                color: mode === m ? T.ink : T.ink3,
-                boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
-                transition: 'all .15s ease',
-              }}
-            >
-              {m === 'login' ? 'Sign in' : 'Create account'}
-            </button>
-          ))}
-        </div>
+        {/* Mode toggle — hidden on first run since there's nobody to log in yet */}
+        {!isFirstRun && (
+          <div style={{
+            display: 'flex', background: T.linen, borderRadius: 12,
+            padding: 4, marginBottom: 28, gap: 4,
+          }}>
+            {(['login', 'register'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => { setMode(m); setError(''); }}
+                style={{
+                  flex: 1, fontFamily: T.sans, fontWeight: 600, fontSize: 14,
+                  padding: '9px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
+                  background: mode === m ? T.card : 'transparent',
+                  color: mode === m ? T.ink : T.ink3,
+                  boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
+                  transition: 'all .15s ease',
+                }}
+              >
+                {m === 'login' ? 'Sign in' : 'Create account'}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -119,7 +134,7 @@ export function AuthScreen({ onAuth }: Props) {
           )}
 
           <Button type="submit" full style={{ marginTop: 4 }} disabled={loading}>
-            {loading ? '…' : mode === 'login' ? 'Sign in' : 'Create account'}
+            {loading ? '…' : isFirstRun ? 'Set up Rootly' : mode === 'login' ? 'Sign in' : 'Create account'}
           </Button>
         </form>
       </div>
