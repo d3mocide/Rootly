@@ -1,8 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Plant } from './types/plant';
-import { INITIAL_PLANTS } from './data/plants';
-import { Toast } from './components';
+import { T, Toast } from './components';
 import { useBreakpoint } from './hooks/useBreakpoint';
+import { getToken, getMe, apiLogout } from './api/auth';
+import { fetchPlants, apiWaterPlant } from './api/plants';
+import { AuthScreen } from './screens/AuthScreen';
 
 // Mobile
 import { TabBar } from './screens/mobile/TabBar';
@@ -23,7 +25,7 @@ import { ProfilePanel } from './screens/desktop/ProfilePanel';
 import { PlaceholderDesktop } from './screens/desktop/PlaceholderDesktop';
 
 export default function App() {
-  const [plants, setPlants] = useState<Plant[]>(INITIAL_PLANTS);
+  const [plants, setPlants] = useState<Plant[]>([]);
   const [tab, setTab] = useState<TabId>('today');
   const [profile, setProfile] = useState<Plant | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -31,7 +33,19 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  const [token, setToken] = useState<string | null>(getToken);
+  const [authChecking, setAuthChecking] = useState(!!getToken());
+
   const isDesktop = useBreakpoint(700);
+
+  useEffect(() => {
+    if (!token) return;
+    getMe()
+      .then(() => fetchPlants())
+      .then(setPlants)
+      .catch(() => setToken(null))
+      .finally(() => setAuthChecking(false));
+  }, []);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -39,16 +53,30 @@ export default function App() {
     toastTimer.current = setTimeout(() => setToast(null), 2200);
   };
 
-  const waterPlant = (p: Plant) => {
-    const updated: Partial<Plant> = { moisture: 96, status: 'watered', note: 'Watered today.', lastWater: 'Today' };
-    setPlants(ps => ps.map(x => x.id === p.id ? { ...x, ...updated } : x));
-    setProfile(cur => cur?.id === p.id ? { ...cur, ...updated } : cur);
+  const handleAuth = (newToken: string) => {
+    setToken(newToken);
+    fetchPlants().then(setPlants);
+  };
+
+  const handleLogout = async () => {
+    await apiLogout();
+    setToken(null);
+    setPlants([]);
+  };
+
+  const waterPlant = async (p: Plant) => {
+    try {
+      const updated = await apiWaterPlant(p.id);
+      setPlants(ps => ps.map(x => x.id === p.id ? updated : x));
+      setProfile(cur => cur?.id === p.id ? updated : cur);
+    } catch {
+      flash('Failed to log watering.');
+    }
   };
 
   const onWater = (p: Plant) => {
     if (isDesktop) {
-      waterPlant(p);
-      flash(`Logged. ${p.name} watered today.`);
+      waterPlant(p).then(() => flash(`Logged. ${p.name} watered today.`));
     } else {
       setWaterTarget(p);
     }
@@ -56,18 +84,35 @@ export default function App() {
 
   const confirmWater = () => {
     if (!waterTarget) return;
-    waterPlant(waterTarget);
-    flash(`Logged. ${waterTarget.name} watered today.`);
+    const target = waterTarget;
     setWaterTarget(null);
+    waterPlant(target).then(() => flash(`Logged. ${target.name} watered today.`));
   };
 
   const waterAll = () => {
     const dry = plants.filter(p => p.status === 'dry');
-    dry.forEach(waterPlant);
-    flash(dry.length ? `Nice — ${dry.length} watered.` : 'All caught up.');
+    Promise.all(dry.map(p => apiWaterPlant(p.id)))
+      .then(updated => {
+        const map = Object.fromEntries(updated.map(p => [p.id, p]));
+        setPlants(ps => ps.map(p => map[p.id] ?? p));
+        flash(dry.length ? `Nice — ${dry.length} watered.` : 'All caught up.');
+      })
+      .catch(() => flash('Something went wrong.'));
   };
 
   const live = profile ? plants.find(p => p.id === profile.id) ?? profile : null;
+
+  if (authChecking) {
+    return (
+      <div style={{ height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: T.paper }}>
+        <img src="/rootly-mark.svg" alt="Rootly" style={{ width: 40, height: 40, opacity: 0.5 }} />
+      </div>
+    );
+  }
+
+  if (!token) {
+    return <AuthScreen onAuth={handleAuth} />;
+  }
 
   if (isDesktop) {
     return (
@@ -80,11 +125,20 @@ export default function App() {
           {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} />}
         </div>
         {toast && <Toast message={toast} />}
+        <button
+          onClick={handleLogout}
+          style={{
+            position: 'fixed', bottom: 20, left: 20, fontFamily: T.sans, fontSize: 13,
+            fontWeight: 600, color: T.ink3, background: 'transparent', border: 'none',
+            cursor: 'pointer', padding: '6px 10px',
+          }}
+        >
+          Sign out
+        </button>
       </div>
     );
   }
 
-  // Mobile layout
   return (
     <div style={{ height: '100dvh', position: 'relative', overflow: 'hidden' }}>
       {!profile ? (
