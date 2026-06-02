@@ -1,4 +1,3 @@
-from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -9,17 +8,13 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7
     database_url: str
     redis_url: str = "redis://redis:6379"
-    cors_origins: list[str] = []
+    cors_origins: str = ""
     production: bool = False
 
     model_config = {"env_file": ".env", "env_ignore_empty": True}
 
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def _parse_cors_origins(cls, v):
-        if isinstance(v, str):
-            return [o.strip() for o in v.split(",") if o.strip()]
-        return v
+    def get_cors_origins(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
 
 settings = Settings()
