@@ -18,8 +18,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE TYPE plantkind AS ENUM ('monstera', 'fig', 'pothos', 'snake', 'succulent')")
-    op.execute("CREATE TYPE plantstatus AS ENUM ('dry', 'soon', 'thriving', 'watered', 'resting')")
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE plantkind AS ENUM ('monstera', 'fig', 'pothos', 'snake', 'succulent');
+        EXCEPTION WHEN duplicate_object THEN NULL;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE plantstatus AS ENUM ('dry', 'soon', 'thriving', 'watered', 'resting');
+        EXCEPTION WHEN duplicate_object THEN NULL;
+        END $$;
+    """)
 
     op.create_table(
         "users",
