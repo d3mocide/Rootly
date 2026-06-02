@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = []
     production: bool = False
 
-    model_config = {"env_file": ".env"}
+    model_config = {"env_file": ".env", "env_ignore_empty": True}
 
     @field_validator("cors_origins", mode="before")
     @classmethod
