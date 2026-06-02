@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/user/Rootly/.claude/lint-hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -27,7 +27,7 @@ Any new error introduced by your changes must be fixed before pushing.
 
 ## Architecture
 
-See `.claude/architecture.md` for the full system diagram, service topology, and decision log.
+See `docs/architecture.md` for the full system diagram, service topology, and decision log.
 
 ### Quick map
 
@@ -49,7 +49,7 @@ See `.claude/architecture.md` for the full system diagram, service topology, and
 
 ## Brand & UI Rules
 
-See `.claude/brand.md` for the complete brand guide.
+See `docs/brand.md` for the complete brand guide.
 
 ### Quick rules
 
@@ -65,7 +65,7 @@ See `.claude/brand.md` for the complete brand guide.
 
 ## Auth System
 
-See `.claude/auth.md` for the full auth flow.
+See `docs/auth.md` for the full auth flow.
 
 ### Quick rules
 
@@ -79,7 +79,7 @@ See `.claude/auth.md` for the full auth flow.
 
 ## Database Rules
 
-See `.claude/database.md` for schema details and migration guidelines.
+See `docs/database.md` for schema details and migration guidelines.
 
 ### Quick rules
 
@@ -94,7 +94,7 @@ See `.claude/database.md` for schema details and migration guidelines.
 
 ## MPM (Module) Development
 
-When building new MPM (Modular Plant Management) modules, read `.claude/architecture.md#mpm-modules` first. Each module follows the same four-layer pattern: DB model → Pydantic schemas → route file → frontend API client + screens.
+When building new MPM (Modular Plant Management) modules, read `docs/architecture.md#mpm-modules` first. Each module follows the same four-layer pattern: DB model → Pydantic schemas → route file → frontend API client + screens.
 
 Checklist for a new module:
 - [ ] `api/models/<name>.py` — SQLAlchemy model with `user_id` FK
