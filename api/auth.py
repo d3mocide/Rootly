@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from uuid import uuid4
+import hashlib
+import base64
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import redis as redis_lib
@@ -14,12 +16,18 @@ bearer_scheme = HTTPBearer()
 redis = redis_lib.from_url(settings.redis_url, decode_responses=True)
 
 
+def _prehash(password: str) -> str:
+    # bcrypt truncates at 72 bytes; SHA-256 + base64 keeps full entropy within that limit
+    digest = hashlib.sha256(password.encode()).digest()
+    return base64.b64encode(digest).decode()
+
+
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return pwd_context.hash(_prehash(password))
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return pwd_context.verify(_prehash(plain), hashed)
 
 
 def create_access_token(user_id: str) -> str:
