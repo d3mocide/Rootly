@@ -140,7 +140,7 @@ export default function App() {
           {currentUser && (
             <span style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.ink2, paddingLeft: 10 }}>
               {getDisplayName(currentUser)}
-              {currentUser.is_admin && (
+              {currentUser.role === 'admin' && (
                 <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: T.ink3, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                   Admin
                 </span>

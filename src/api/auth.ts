@@ -1,15 +1,10 @@
 import { apiFetch } from './client';
 
-export interface TokenResponse {
-  access_token: string;
-  token_type: string;
-}
-
 export interface UserResponse {
   id: string;
   email: string;
   display_name: string | null;
-  is_admin: boolean;
+  role: string;
   created_at: string;
 }
 
@@ -22,19 +17,19 @@ export function getDisplayName(user: UserResponse): string {
   return user.display_name || user.email.split('@')[0];
 }
 
-export async function register(
+export async function setup(
   email: string,
   password: string,
   displayName?: string,
-): Promise<TokenResponse> {
-  return apiFetch('/auth/register', {
+): Promise<void> {
+  await apiFetch('/auth/setup', {
     method: 'POST',
     body: JSON.stringify({ email, password, display_name: displayName || undefined }),
   });
 }
 
-export async function login(email: string, password: string): Promise<TokenResponse> {
-  return apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+export async function login(email: string, password: string): Promise<void> {
+  await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 }
 
 export async function apiLogout(): Promise<void> {
@@ -47,5 +42,5 @@ export async function getMe(): Promise<UserResponse> {
 }
 
 export async function checkSetup(): Promise<{ setup_required: boolean }> {
-  return apiFetch('/auth/setup');
+  return apiFetch('/auth/setup-status');
 }
