@@ -29,9 +29,11 @@ interface ButtonProps {
   onClick?: () => void;
   full?: boolean;
   style?: React.CSSProperties;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
-export function Button({ children, variant = 'primary', size = 'md', icon, onClick, full, style = {} }: ButtonProps) {
+export function Button({ children, variant = 'primary', size = 'md', icon, onClick, full, style = {}, type = 'button', disabled }: ButtonProps) {
   const base: React.CSSProperties = {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
     fontFamily: T.sans, fontWeight: 600, border: '1.5px solid transparent',
@@ -52,8 +54,10 @@ export function Button({ children, variant = 'primary', size = 'md', icon, onCli
   };
   return (
     <button
+      type={type}
       onClick={onClick}
-      style={{ ...base, ...sizes[size], ...variants[variant], ...style }}
+      disabled={disabled}
+      style={{ ...base, ...sizes[size], ...variants[variant], opacity: disabled ? 0.6 : 1, ...style }}
       onMouseDown={e => (e.currentTarget.style.transform = 'scale(.97)')}
       onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
       onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
