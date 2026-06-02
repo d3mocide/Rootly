@@ -1,5 +1,5 @@
 import { Icon } from '../../components/Icon';
-import { T } from '../../components';
+import { T } from '../../tokens';
 
 export type TabId = 'today' | 'plants' | 'growth' | 'care';
 

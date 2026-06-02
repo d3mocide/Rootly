@@ -1,5 +1,6 @@
 import React from 'react';
-import { T, Icon } from '../../components';
+import { T } from '../../tokens';
+import { Icon } from '../../components';
 
 interface TopbarProps {
   title: string;

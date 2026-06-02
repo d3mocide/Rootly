@@ -1,5 +1,6 @@
 import type { Plant } from '../../types/plant';
-import { T, Button } from '../../components';
+import { T } from '../../tokens';
+import { Button } from '../../components';
 import { PlantArt } from '../../components/PlantArt';
 
 interface Props {

@@ -1,5 +1,6 @@
 import { RootlyMark, Icon } from '../../components/Icon';
-import { T, Button } from '../../components';
+import { T } from '../../tokens';
+import { Button } from '../../components';
 import type { TabId } from '../mobile/TabBar';
 
 interface SidebarProps {

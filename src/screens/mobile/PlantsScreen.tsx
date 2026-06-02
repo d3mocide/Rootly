@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Plant } from '../../types/plant';
-import { T, PlantCard, Icon } from '../../components';
+import { T } from '../../tokens';
+import { PlantCard, Icon } from '../../components';
 
 interface Props {
   plants: Plant[];

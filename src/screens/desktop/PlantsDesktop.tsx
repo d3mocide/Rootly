@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Plant } from '../../types/plant';
-import { T, PlantCard } from '../../components';
+import { T } from '../../tokens';
+import { PlantCard } from '../../components';
 import { Topbar } from './Topbar';
 
 interface Props {

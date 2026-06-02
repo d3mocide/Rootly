@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Plant } from './types/plant';
-import { T, Toast } from './components';
+import { T } from './tokens';
+import { Toast } from './components';
 import { useBreakpoint } from './hooks/useBreakpoint';
 import { getToken, getMe, getDisplayName, apiLogout, checkSetup } from './api/auth';
 import type { UserResponse } from './api/auth';
@@ -54,7 +55,7 @@ export default function App() {
         .catch(() => {})
         .finally(() => setAuthChecking(false));
     }
-  }, []);
+  }, [token]);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -63,17 +64,15 @@ export default function App() {
   };
 
   const handleAuth = (newToken: string) => {
-    setToken(newToken);
     setSetupRequired(false);
-    getMe().then(setCurrentUser);
-    fetchPlants().then(setPlants);
+    setToken(newToken);
   };
 
   const handleLogout = async () => {
     await apiLogout();
-    setToken(null);
     setCurrentUser(null);
     setPlants([]);
+    setToken(null);
   };
 
   const waterPlant = async (p: Plant) => {
