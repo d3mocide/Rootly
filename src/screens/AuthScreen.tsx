@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { T } from '../tokens';
 import { Button } from '../components';
-import { login, register, saveToken } from '../api/auth';
+import { login, setup, saveToken } from '../api/auth';
 
 interface Props {
   onAuth: (token: string) => void;
@@ -28,11 +28,13 @@ export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
     setError('');
     setLoading(true);
     try {
-      const res = mode === 'login'
-        ? await login(email, password)
-        : await register(email, password, displayName.trim() || undefined);
-      saveToken(res.access_token);
-      onAuth(res.access_token);
+      if (mode === 'login') {
+        await login(email, password);
+      } else {
+        await setup(email, password, displayName.trim() || undefined);
+      }
+      saveToken('authenticated');
+      onAuth('authenticated');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
