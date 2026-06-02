@@ -47,5 +47,5 @@ export async function getMe(): Promise<UserResponse> {
 }
 
 export async function checkSetup(): Promise<{ setup_required: boolean }> {
-  return apiFetch('/auth/setup');
+  return apiFetch('/auth/setup-status');
 }
