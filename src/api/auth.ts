@@ -8,6 +8,7 @@ export interface TokenResponse {
 export interface UserResponse {
   id: string;
   email: string;
+  is_admin: boolean;
   created_at: string;
 }
 

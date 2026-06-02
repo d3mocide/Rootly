@@ -3,6 +3,7 @@ import type { Plant } from './types/plant';
 import { T, Toast } from './components';
 import { useBreakpoint } from './hooks/useBreakpoint';
 import { getToken, getMe, apiLogout, checkSetup } from './api/auth';
+import type { UserResponse } from './api/auth';
 import { fetchPlants, apiWaterPlant } from './api/plants';
 import { AuthScreen } from './screens/AuthScreen';
 
@@ -34,6 +35,7 @@ export default function App() {
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const [token, setToken] = useState<string | null>(getToken);
+  const [currentUser, setCurrentUser] = useState<UserResponse | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
   const [setupRequired, setSetupRequired] = useState(false);
 
@@ -42,7 +44,7 @@ export default function App() {
   useEffect(() => {
     if (token) {
       getMe()
-        .then(() => fetchPlants())
+        .then(user => { setCurrentUser(user); return fetchPlants(); })
         .then(setPlants)
         .catch(() => setToken(null))
         .finally(() => setAuthChecking(false));
@@ -63,12 +65,14 @@ export default function App() {
   const handleAuth = (newToken: string) => {
     setToken(newToken);
     setSetupRequired(false);
+    getMe().then(setCurrentUser);
     fetchPlants().then(setPlants);
   };
 
   const handleLogout = async () => {
     await apiLogout();
     setToken(null);
+    setCurrentUser(null);
     setPlants([]);
   };
 
@@ -133,16 +137,22 @@ export default function App() {
           {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} />}
         </div>
         {toast && <Toast message={toast} />}
-        <button
-          onClick={handleLogout}
-          style={{
-            position: 'fixed', bottom: 20, left: 20, fontFamily: T.sans, fontSize: 13,
-            fontWeight: 600, color: T.ink3, background: 'transparent', border: 'none',
-            cursor: 'pointer', padding: '6px 10px',
-          }}
-        >
-          Sign out
-        </button>
+        <div style={{ position: 'fixed', bottom: 20, left: 20, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+          {currentUser?.is_admin && (
+            <span style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 700, color: T.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', paddingLeft: 10 }}>
+              Admin
+            </span>
+          )}
+          <button
+            onClick={handleLogout}
+            style={{
+              fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.ink3,
+              background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px 10px',
+            }}
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     );
   }
