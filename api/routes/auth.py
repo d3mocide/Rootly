@@ -22,7 +22,7 @@ from schemas.user import ChangePassword, UserLogin, UserResponse, UserSetup
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-_COOKIE = dict(httponly=True, secure=True, samesite="strict")
+_COOKIE = dict(httponly=True, secure=settings.production, samesite="strict")
 
 
 def _set_auth_cookies(response: Response, user_id: uuid.UUID) -> None:
