@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { Plant } from './types/plant';
 import { T, Toast } from './components';
 import { useBreakpoint } from './hooks/useBreakpoint';
-import { getToken, getMe, apiLogout, checkSetup } from './api/auth';
+import { getToken, getMe, getDisplayName, apiLogout, checkSetup } from './api/auth';
 import type { UserResponse } from './api/auth';
 import { fetchPlants, apiWaterPlant } from './api/plants';
 import { AuthScreen } from './screens/AuthScreen';
@@ -137,10 +137,15 @@ export default function App() {
           {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} />}
         </div>
         {toast && <Toast message={toast} />}
-        <div style={{ position: 'fixed', bottom: 20, left: 20, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
-          {currentUser?.is_admin && (
-            <span style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 700, color: T.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', paddingLeft: 10 }}>
-              Admin
+        <div style={{ position: 'fixed', bottom: 20, left: 20, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+          {currentUser && (
+            <span style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.ink2, paddingLeft: 10 }}>
+              {getDisplayName(currentUser)}
+              {currentUser.is_admin && (
+                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: T.ink3, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  Admin
+                </span>
+              )}
             </span>
           )}
           <button

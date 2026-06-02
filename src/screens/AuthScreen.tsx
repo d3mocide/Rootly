@@ -11,6 +11,7 @@ export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
   const [mode, setMode] = useState<'login' | 'register'>(isFirstRun ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -26,8 +27,9 @@ export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
     setError('');
     setLoading(true);
     try {
-      const fn = mode === 'login' ? login : register;
-      const res = await fn(email, password);
+      const res = mode === 'login'
+        ? await login(email, password)
+        : await register(email, password, displayName.trim() || undefined);
       saveToken(res.access_token);
       onAuth(res.access_token);
     } catch (err: unknown) {
@@ -74,7 +76,7 @@ export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
             {(['login', 'register'] as const).map(m => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setError(''); }}
+                onClick={() => { setMode(m); setError(''); setDisplayName(''); }}
                 style={{
                   flex: 1, fontFamily: T.sans, fontWeight: 600, fontSize: 14,
                   padding: '9px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
@@ -92,6 +94,23 @@ export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {mode === 'register' && (
+            <div>
+              <label style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.ink2, display: 'block', marginBottom: 7 }}>
+                Display name <span style={{ fontWeight: 400, color: T.ink3 }}>(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder="e.g. Sarah"
+                maxLength={80}
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = T.fern)}
+                onBlur={e => (e.target.style.borderColor = T.stone200)}
+              />
+            </div>
+          )}
           <div>
             <label style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.ink2, display: 'block', marginBottom: 7 }}>
               Email

@@ -8,6 +8,7 @@ export interface TokenResponse {
 export interface UserResponse {
   id: string;
   email: string;
+  display_name: string | null;
   is_admin: boolean;
   created_at: string;
 }
@@ -16,8 +17,20 @@ export const getToken = () => localStorage.getItem('rootly_token');
 export const saveToken = (t: string) => localStorage.setItem('rootly_token', t);
 export const clearToken = () => localStorage.removeItem('rootly_token');
 
-export async function register(email: string, password: string): Promise<TokenResponse> {
-  return apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) });
+/** Returns display_name if set, otherwise the local part of the email address. */
+export function getDisplayName(user: UserResponse): string {
+  return user.display_name || user.email.split('@')[0];
+}
+
+export async function register(
+  email: string,
+  password: string,
+  displayName?: string,
+): Promise<TokenResponse> {
+  return apiFetch('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, display_name: displayName || undefined }),
+  });
 }
 
 export async function login(email: string, password: string): Promise<TokenResponse> {
