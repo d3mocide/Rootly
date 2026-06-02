@@ -4,7 +4,7 @@ from uuid import UUID
 from typing import Optional
 
 
-class UserRegister(BaseModel):
+class UserSetup(BaseModel):
     email: EmailStr
     password: str
     display_name: Optional[str] = None
@@ -15,16 +15,17 @@ class UserLogin(BaseModel):
     password: str
 
 
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+
+
 class UserResponse(BaseModel):
     id: UUID
     email: str
     display_name: Optional[str] = None
-    is_admin: bool
+    role: str
     created_at: datetime
+    last_login_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"

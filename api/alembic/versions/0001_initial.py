@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises:
-Create Date: 2026-06-01
+Create Date: 2026-06-02
 
 """
 from typing import Sequence, Union
@@ -18,6 +18,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    op.execute("CREATE EXTENSION IF NOT EXISTS citext")
+
     op.execute("""
         DO $$ BEGIN
             CREATE TYPE plantkind AS ENUM ('monstera', 'fig', 'pothos', 'snake', 'succulent');
@@ -34,11 +36,15 @@ def upgrade() -> None:
     op.create_table(
         "users",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("email", sa.String(), nullable=False),
-        sa.Column("hashed_password", sa.String(), nullable=False),
-        sa.Column("is_admin", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("email", sa.Text(), nullable=False),
+        sa.Column("password_hash", sa.Text(), nullable=False),
+        sa.Column("display_name", sa.Text(), nullable=True),
+        sa.Column("role", sa.String(20), nullable=False, server_default="operator"),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("last_login_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("is_password_temp", sa.Boolean(), nullable=False, server_default="false"),
     )
+    op.execute("ALTER TABLE users ALTER COLUMN email TYPE CITEXT USING email::citext")
     op.create_index("ix_users_email", "users", ["email"], unique=True)
 
     op.create_table(

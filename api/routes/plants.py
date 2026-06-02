@@ -1,68 +1,76 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
-from database import get_db
-from models.user import User
-from models.plant import Plant
-from schemas.plant import PlantCreate, PlantUpdate, PlantResponse
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from auth import get_current_user
+from database import get_db
+from models.plant import Plant
+from models.user import User
+from schemas.plant import PlantCreate, PlantResponse, PlantUpdate
 
 router = APIRouter(prefix="/plants", tags=["plants"])
 
 
 @router.get("", response_model=List[PlantResponse])
-def list_plants(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return db.query(Plant).filter(Plant.user_id == user.id).all()
+async def list_plants(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Plant).where(Plant.user_id == user.id))
+    return result.scalars().all()
 
 
 @router.post("", response_model=PlantResponse, status_code=status.HTTP_201_CREATED)
-def create_plant(body: PlantCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def create_plant(body: PlantCreate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     plant = Plant(**body.model_dump(), user_id=user.id)
     db.add(plant)
-    db.commit()
-    db.refresh(plant)
+    await db.commit()
+    await db.refresh(plant)
     return plant
 
 
 @router.get("/{plant_id}", response_model=PlantResponse)
-def get_plant(plant_id: UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    plant = db.query(Plant).filter(Plant.id == plant_id, Plant.user_id == user.id).first()
+async def get_plant(plant_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Plant).where(Plant.id == plant_id, Plant.user_id == user.id))
+    plant = result.scalar_one_or_none()
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
     return plant
 
 
 @router.put("/{plant_id}", response_model=PlantResponse)
-def update_plant(plant_id: UUID, body: PlantUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    plant = db.query(Plant).filter(Plant.id == plant_id, Plant.user_id == user.id).first()
+async def update_plant(plant_id: UUID, body: PlantUpdate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Plant).where(Plant.id == plant_id, Plant.user_id == user.id))
+    plant = result.scalar_one_or_none()
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
     for key, value in body.model_dump(exclude_none=True).items():
         setattr(plant, key, value)
-    db.commit()
-    db.refresh(plant)
+    await db.commit()
+    await db.refresh(plant)
     return plant
 
 
 @router.delete("/{plant_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_plant(plant_id: UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    plant = db.query(Plant).filter(Plant.id == plant_id, Plant.user_id == user.id).first()
+async def delete_plant(plant_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Plant).where(Plant.id == plant_id, Plant.user_id == user.id))
+    plant = result.scalar_one_or_none()
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
-    db.delete(plant)
-    db.commit()
+    await db.delete(plant)
+    await db.commit()
 
 
 @router.post("/{plant_id}/water", response_model=PlantResponse)
-def water_plant(plant_id: UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    plant = db.query(Plant).filter(Plant.id == plant_id, Plant.user_id == user.id).first()
+async def water_plant(plant_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Plant).where(Plant.id == plant_id, Plant.user_id == user.id))
+    plant = result.scalar_one_or_none()
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
-    plant.last_water = datetime.utcnow()
+    plant.last_water = datetime.now(timezone.utc)
     plant.moisture = 1.0
     plant.status = "watered"
-    db.commit()
-    db.refresh(plant)
+    await db.commit()
+    await db.refresh(plant)
     return plant
