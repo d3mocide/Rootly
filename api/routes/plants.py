@@ -40,7 +40,10 @@ async def get_plant(plant_id: UUID, user: User = Depends(get_current_user), db: 
 
 
 @router.put("/{plant_id}", response_model=PlantResponse)
-async def update_plant(plant_id: UUID, body: PlantUpdate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def update_plant(
+    plant_id: UUID, body: PlantUpdate,
+    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(select(Plant).where(Plant.id == plant_id, Plant.user_id == user.id))
     plant = result.scalar_one_or_none()
     if not plant:

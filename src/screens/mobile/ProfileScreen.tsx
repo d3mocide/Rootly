@@ -1,5 +1,6 @@
 import type { Plant } from '../../types/plant';
-import { T, Button, StatusPill, MoistureRing, Sparkline, SectionHeader, Icon } from '../../components';
+import { T } from '../../tokens';
+import { Button, StatusPill, MoistureRing, Sparkline, SectionHeader, Icon } from '../../components';
 import { PlantArt } from '../../components/PlantArt';
 
 interface Props {

@@ -1,5 +1,6 @@
 import type { Plant } from '../../types/plant';
-import { T, Button, PlantRow, SectionHeader, Card, Icon } from '../../components';
+import { T } from '../../tokens';
+import { Button, PlantRow, SectionHeader, Card, Icon } from '../../components';
 
 function greeting() {
   const h = new Date().getHours();

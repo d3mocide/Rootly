@@ -1,5 +1,6 @@
 import type { Plant } from '../../types/plant';
-import { T, Sparkline, SectionHeader } from '../../components';
+import { T } from '../../tokens';
+import { Sparkline, SectionHeader } from '../../components';
 import { PlantArt } from '../../components/PlantArt';
 
 interface Props {

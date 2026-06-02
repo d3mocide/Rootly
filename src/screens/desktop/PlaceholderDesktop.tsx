@@ -1,4 +1,5 @@
-import { T, Icon } from '../../components';
+import { T } from '../../tokens';
+import { Icon } from '../../components';
 import { Topbar } from './Topbar';
 
 const MAP: Record<string, [string, string, string]> = {

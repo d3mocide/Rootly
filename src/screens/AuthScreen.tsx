@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { T, Button } from '../components';
+import { T } from '../tokens';
+import { Button } from '../components';
 import { login, register, saveToken } from '../api/auth';
 
 interface Props {
