@@ -1,4 +1,5 @@
 .PHONY: setup up down build restart logs shell migrate migration downgrade psql redis dev
+SHELL := /bin/bash
 
 # ── First-time setup ──────────────────────────────────────────────────────────
 setup:
