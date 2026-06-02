@@ -8,8 +8,9 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Read DB URL from environment so alembic.ini stays secret-free
-config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
+# Read DB URL; strip +asyncpg so alembic uses psycopg2 for sync migrations
+_db_url = os.environ["DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://", 1)
+config.set_main_option("sqlalchemy.url", _db_url)
 
 # Import all models so autogenerate can detect changes
 from database import Base  # noqa

@@ -1,89 +1,98 @@
-from datetime import datetime, timedelta
-from uuid import uuid4
 import hashlib
-import base64
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-import redis as redis_lib
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+import uuid
+from datetime import datetime, timedelta, timezone
+
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+import jwt
+from fastapi import Cookie, Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+import redis.asyncio as aioredis
+
 from config import settings
 from database import get_db
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-bearer_scheme = HTTPBearer()
-redis = redis_lib.from_url(settings.redis_url, decode_responses=True)
+ph = PasswordHasher()
+
+# Pre-computed hash used to ensure constant response time when user is not found
+_DUMMY_HASH = ph.hash("rootly-timing-guard-dummy")
+
+_redis = aioredis.from_url(settings.redis_url, decode_responses=True)
 
 
-def _prehash(password: str) -> str:
-    # bcrypt truncates at 72 bytes; SHA-256 + base64 keeps full entropy within that limit
-    digest = hashlib.sha256(password.encode()).digest()
-    return base64.b64encode(digest).decode()
-
-
-def hash_password(password: str) -> str:
-    return pwd_context.hash(_prehash(password))
+def hash_password(plain: str) -> str:
+    return ph.hash(plain)
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(_prehash(plain), hashed)
-
-
-def create_access_token(user_id: str) -> str:
-    session_id = str(uuid4())
-    expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
-    token = jwt.encode(
-        {"sub": user_id, "sid": session_id, "exp": expire},
-        settings.secret_key,
-        algorithm=settings.algorithm,
-    )
-    redis.setex(f"session:{session_id}", settings.session_expire_days * 86400, user_id)
-    return token
-
-
-def get_token_payload(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-) -> dict:
-    exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired token",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
     try:
-        payload = jwt.decode(
-            credentials.credentials, settings.secret_key, algorithms=[settings.algorithm]
-        )
-        user_id: str = payload.get("sub")
-        session_id: str = payload.get("sid")
-        if not user_id or not session_id:
-            raise exc
-    except JWTError:
-        raise exc
-
-    if not redis.exists(f"session:{session_id}"):
-        raise exc
-
-    return {"user_id": user_id, "session_id": session_id}
+        return ph.verify(hashed, plain)
+    except VerifyMismatchError:
+        return False
 
 
-def revoke_session(session_id: str) -> None:
-    redis.delete(f"session:{session_id}")
+def _dummy_verify() -> None:
+    """Run a real Argon2 verify to normalise response time on missing-user path."""
+    try:
+        ph.verify(_DUMMY_HASH, "timing-guard")
+    except VerifyMismatchError:
+        pass
 
 
-def get_current_user(
-    payload: dict = Depends(get_token_payload),
-    db: Session = Depends(get_db),
+def create_token(user_id: uuid.UUID, token_type: str, expire_delta: timedelta) -> str:
+    payload = {
+        "sub": str(user_id),
+        "type": token_type,
+        "exp": datetime.now(timezone.utc) + expire_delta,
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+
+
+def create_access_token(user_id: uuid.UUID) -> str:
+    return create_token(user_id, "access", timedelta(minutes=settings.access_token_expire_minutes))
+
+
+def create_refresh_token(user_id: uuid.UUID) -> str:
+    return create_token(user_id, "refresh", timedelta(days=settings.refresh_token_expire_days))
+
+
+async def check_replay(request: Request) -> None:
+    body = await request.body()
+    body_hash = hashlib.sha256(body).hexdigest()
+    key = f"replay:{body_hash}"
+    if await _redis.exists(key):
+        raise HTTPException(status_code=409, detail="Duplicate request")
+    await _redis.setex(key, 600, "1")
+
+
+async def get_current_user(
+    access_token: str = Cookie(default=None),
+    db: AsyncSession = Depends(get_db),
 ):
     from models.user import User
 
-    user = db.query(User).filter(User.id == payload["user_id"]).first()
+    exc = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    if not access_token:
+        raise exc
+    try:
+        payload = jwt.decode(access_token, settings.jwt_secret, algorithms=["HS256"])
+        if payload.get("type") != "access":
+            raise exc
+        user_id: str = payload.get("sub")
+    except jwt.PyJWTError:
+        raise exc
+
+    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+    user = result.scalar_one_or_none()
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise exc
     return user
 
 
-def require_admin(user=Depends(get_current_user)):
-    if not user.is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
-    return user
+def require_role(*roles: str):
+    async def _check(user=Depends(get_current_user)):
+        if user.role not in roles:
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    return Depends(_check)
