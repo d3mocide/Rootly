@@ -1,4 +1,4 @@
-.PHONY: setup up down build restart logs shell migrate migration downgrade psql redis dev
+.PHONY: setup up down build build-dev build-prod nuke restart logs shell migrate migration downgrade psql redis dev
 SHELL := /bin/bash
 
 # ── First-time setup ──────────────────────────────────────────────────────────
@@ -22,14 +22,26 @@ up:
 down:
 	docker compose down
 
-build:
+build: build-prod
+
+build-prod:
 	docker compose up -d --build
+
+build-dev:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 restart:
 	docker compose restart api
 
 logs:
 	docker compose logs -f api
+
+# ── Nuke everything (containers, volumes, images) ────────────────────────────
+nuke:
+	@echo "WARNING: This will delete all containers, volumes, and data."
+	@read -p "Are you sure? [y/N] " confirm; \
+	[ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || (echo "Aborted." && exit 1)
+	docker compose down -v --rmi all --remove-orphans
 
 # ── Database migrations ───────────────────────────────────────────────────────
 migrate:
