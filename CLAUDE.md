@@ -4,7 +4,7 @@
 
 Rootly is a plant care management app: FastAPI (Python) backend + React 19 (TypeScript) frontend, containerised with Docker Compose. PostgreSQL for persistence, Redis for replay-attack prevention.
 
-**Branch**: always develop on `claude/trusting-lovelace-H8BMf`. Commit and push when work is complete.
+**Branching**: Claude Code sessions each develop on their own `claude/` branch. The active branch for the current session is set in the session configuration — commit and push there when work is complete.
 
 ---
 
