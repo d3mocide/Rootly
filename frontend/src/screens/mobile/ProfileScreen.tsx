@@ -10,9 +10,10 @@ interface Props {
   onWater: (p: Plant) => void;
   onEdit: (p: Plant) => void;
   onDelete: (p: Plant) => void;
+  onLogGrowth: (p: Plant) => void;
 }
 
-export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete }: Props) {
+export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete, onLogGrowth }: Props) {
   const [showMenu, setShowMenu] = useState(false);
 
   const menuItemStyle: React.CSSProperties = {
@@ -141,7 +142,7 @@ export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete }: Prop
 
           {/* growth */}
           <div style={{ marginTop: 24 }}>
-            <SectionHeader action="Log growth">Growth</SectionHeader>
+            <SectionHeader action="Log growth" onAction={() => onLogGrowth(plant)}>Growth</SectionHeader>
             {!plant.growth || plant.growth.length < 2 ? (
               <div style={{
                 background: T.card, borderRadius: 20, padding: '24px 20px',

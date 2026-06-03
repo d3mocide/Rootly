@@ -10,9 +10,10 @@ interface Props {
   onWater: (p: Plant) => void;
   onEdit: (p: Plant) => void;
   onDelete: (p: Plant) => void;
+  onLogGrowth: (p: Plant) => void;
 }
 
-export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete }: Props) {
+export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete, onLogGrowth }: Props) {
   const [showMenu, setShowMenu] = useState(false);
 
   if (!plant) return null;
@@ -159,7 +160,7 @@ export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete }: Prop
 
           {/* growth */}
           <div style={{ marginTop: 22 }}>
-            <SectionHeader action="Log growth">Growth</SectionHeader>
+            <SectionHeader action="Log growth" onAction={() => onLogGrowth(plant)}>Growth</SectionHeader>
             {!plant.growth || plant.growth.length < 2 ? (
               <div style={{
                 background: T.card, borderRadius: 18, padding: '24px 20px',

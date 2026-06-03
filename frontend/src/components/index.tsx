@@ -245,11 +245,32 @@ export function PlantRow({ plant, onClick, onWater, last }: PlantRowProps) {
 }
 
 // ---- Section header ---------------------------------------------
-export function SectionHeader({ children, action }: { children: React.ReactNode; action?: string }) {
+export function SectionHeader({ children, action, onAction }: { children: React.ReactNode; action?: string; onAction?: () => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '0 0 12px' }}>
       <h3 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 19, color: T.ink, letterSpacing: '-0.02em' }}>{children}</h3>
-      {action && <span style={{ fontFamily: T.sans, fontSize: 13.5, fontWeight: 600, color: T.fern }}>{action}</span>}
+      {action && (
+        <button
+          onClick={onAction}
+          disabled={!onAction}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: onAction ? 'pointer' : 'default',
+            fontFamily: T.sans,
+            fontSize: 13.5,
+            fontWeight: 600,
+            color: T.fern,
+            outline: 'none',
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={e => { if (onAction) e.currentTarget.style.opacity = '0.8'; }}
+          onMouseLeave={e => { if (onAction) e.currentTarget.style.opacity = '1'; }}
+        >
+          {action}
+        </button>
+      )}
     </div>
   );
 }
@@ -291,3 +312,4 @@ export { PlantArt } from './PlantArt';
 export { SettingsModal } from './SettingsModal';
 export { AddPlantModal } from './AddPlantModal';
 export { EditPlantModal } from './EditPlantModal';
+export { LogGrowthModal } from './LogGrowthModal';

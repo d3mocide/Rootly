@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Plant } from './types/plant';
 import { T } from './tokens';
-import { Toast, SettingsModal, AddPlantModal, EditPlantModal, Icon } from './components';
+import { Toast, SettingsModal, AddPlantModal, EditPlantModal, LogGrowthModal, Icon } from './components';
 import { useBreakpoint } from './hooks/useBreakpoint';
 import { getToken, getMe, apiLogout, checkSetup } from './api/auth';
 import type { UserResponse } from './api/auth';
@@ -39,6 +39,7 @@ export default function App() {
   const [editTarget, setEditTarget] = useState<Plant | null>(null);
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<Plant | null>(null);
   const [waterTarget, setWaterTarget] = useState<Plant | null>(null);
+  const [growthTarget, setGrowthTarget] = useState<Plant | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -211,7 +212,7 @@ export default function App() {
             {tab === 'today'  && <TodayDesktop plants={plants} onOpen={setProfile} onWater={onWater} onWaterAll={waterAll} currentUser={currentUser} />}
             {tab === 'plants' && <PlantsDesktop plants={plants} onOpen={setProfile} areas={areas} />}
             {(tab === 'growth' || tab === 'care') && <PlaceholderDesktop tab={tab} />}
-            {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} />}
+            {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} onLogGrowth={setGrowthTarget} />}
           </div>
           <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} currentUser={currentUser} onLogout={handleLogout} flash={flash} areas={areas} onAddArea={handleAddArea} onDeleteArea={handleDeleteArea} />
           <AddPlantModal isOpen={addOpenDesktop} onClose={() => setAddOpenDesktop(false)} onAdd={handleAddPlant} areas={areas} />
@@ -227,7 +228,7 @@ export default function App() {
               <TabBar active={tab} onChange={t => { setTab(t); setProfile(null); }} onAdd={() => setAddOpen(true)} />
             </>
           ) : (
-            <ProfileScreen plant={profile} onBack={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} />
+            <ProfileScreen plant={profile} onBack={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} onLogGrowth={setGrowthTarget} />
           )}
 
           {addOpen && <AddPlantScreen onAdd={handleAddPlant} onClose={() => setAddOpen(false)} areas={areas} />}
@@ -315,6 +316,18 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {growthTarget && (
+        <LogGrowthModal
+          isOpen={!!growthTarget}
+          onClose={() => setGrowthTarget(null)}
+          plant={growthTarget}
+          onLog={async (newHeight) => {
+            const updatedGrowth = [...growthTarget.growth, newHeight];
+            await handleEditPlant(growthTarget.id, { growth: updatedGrowth });
+          }}
+        />
       )}
 
       {toast && <Toast message={toast} />}

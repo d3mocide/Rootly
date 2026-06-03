@@ -33,6 +33,24 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll, currentUser 
   const needs = plants.filter(p => p.status === 'dry' || p.status === 'soon');
   const well = plants.filter(p => p.status === 'thriving' || p.status === 'watered');
   const dryCount = plants.filter(p => p.status === 'dry').length;
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const wateringsLogged = plants.filter(p => {
+    if (!p.lastWater) return false;
+    const lastWaterDate = new Date(p.lastWater);
+    return lastWaterDate >= oneWeekAgo;
+  }).length;
+
+  const totalGrowth = plants.reduce((sum, p) => {
+    if (p.growth && p.growth.length >= 2) {
+      return sum + (p.growth[p.growth.length - 1] - p.growth[0]);
+    }
+    return sum;
+  }, 0);
+
+  const onTimeCount = plants.filter(p => p.status !== 'dry').length;
+  const onTimeCareRate = plants.length > 0 ? Math.round((onTimeCount / plants.length) * 100) : 100;
   
   const nowTz = getLocalDateInTimezone(new Date());
   const day = DAYS[nowTz.getDay()];
@@ -112,9 +130,9 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll, currentUser 
           <Card>
             <SectionHeader>This week</SectionHeader>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <Summary icon="droplets" label="Waterings logged" value="6" tint={T.waterSoft} color={T.water} />
-              <Summary icon="trendingUp" label="Growth across plants" value="+19cm" tint={T.successSoft} color={T.success} />
-              <Summary icon="check" label="On-time care" value="92%" tint={T.sprout} color={T.canopy} />
+              <Summary icon="droplets" label="Waterings logged" value={String(wateringsLogged)} tint={T.waterSoft} color={T.water} />
+              <Summary icon="trendingUp" label="Growth across plants" value={`+${totalGrowth}cm`} tint={T.successSoft} color={T.success} />
+              <Summary icon="check" label="On-time care" value={`${onTimeCareRate}%`} tint={T.sprout} color={T.canopy} />
             </div>
           </Card>
 

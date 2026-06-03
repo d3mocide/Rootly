@@ -9,6 +9,32 @@ interface Props {
 }
 
 export function GrowthScreen({ plants, onOpen }: Props) {
+  const totalGrowth = plants.reduce((sum, p) => {
+    if (p.growth && p.growth.length >= 2) {
+      return sum + (p.growth[p.growth.length - 1] - p.growth[0]);
+    }
+    return sum;
+  }, 0);
+
+  // Calculate dynamic weekly trend
+  const maxLen = Math.max(...plants.map(p => p.growth?.length || 0), 0);
+  const trend: number[] = [];
+  if (maxLen >= 2) {
+    for (let i = 0; i < maxLen; i++) {
+      let sum = 0;
+      plants.forEach(p => {
+        if (p.growth && p.growth.length > 0) {
+          const idx = p.growth.length - maxLen + i;
+          const val = idx >= 0 ? p.growth[idx] : p.growth[0];
+          sum += val;
+        }
+      });
+      trend.push(sum);
+    }
+  }
+
+  const diffTrend = trend.length >= 2 ? trend.map(val => val - trend[0]) : [];
+
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: T.paper }}>
       <div style={{ padding: '58px 20px 120px' }}>
@@ -18,11 +44,11 @@ export function GrowthScreen({ plants, onOpen }: Props) {
         <div style={{ marginTop: 18, background: T.canopy, borderRadius: 24, padding: '20px 22px', color: T.onDark }}>
           <div style={{ fontFamily: T.sans, fontSize: 13.5, fontWeight: 600, color: T.sageSoft }}>Across all plants</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 5 }}>
-            <span style={{ fontFamily: T.mono, fontSize: 38, fontWeight: 500, letterSpacing: '-0.02em' }}>+19cm</span>
+            <span style={{ fontFamily: T.mono, fontSize: 38, fontWeight: 500, letterSpacing: '-0.02em' }}>+{totalGrowth}cm</span>
             <span style={{ fontFamily: T.sans, fontSize: 14, color: T.sageSoft }}>this season</span>
           </div>
           <div style={{ marginTop: 8, color: '#cfe0c6' }}>
-            <Sparkline data={[8, 9, 11, 12, 14, 16, 19]} width={300} height={50} color="#A9C2A1" />
+            {diffTrend.length >= 2 && <Sparkline data={diffTrend} width={300} height={50} color="#A9C2A1" />}
           </div>
         </div>
 
