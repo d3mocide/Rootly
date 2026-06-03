@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { T } from '../../tokens';
-import { Icon, KindPicker } from '../../components';
-import type { Plant } from '../../types/plant';
+import { Icon } from '../../components';
+import { PlantIconComposer } from '../../components/PlantIconComposer';
+import type { Plant, IconRecipe } from '../../types/plant';
 import type { Area } from '../../types/area';
 import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery } from '../../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../../api/plantbook';
@@ -26,7 +27,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
   const [selectedProfile, setSelectedProfile] = useState<PlantProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  const [kind, setKind] = useState<Plant['kind'] | undefined>(undefined);
+  const [icon, setIcon] = useState<IconRecipe | undefined>(undefined);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +107,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
       await onAdd({
         name: name.trim(),
         species: selectedProfile ? selectedProfile.display_name : speciesQuery.trim(),
-        kind,
+        icon,
         room: room.trim() || (areas[0] ? areas[0].name : ''),
         every: Number(every) || 7,
         light: selectedProfile ? (luxToLabel(selectedProfile.min_light_lux, selectedProfile.max_light_lux) || '') : '',
@@ -252,7 +253,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
         {/* Icon */}
         <div>
           <label style={labelStyle}>Icon</label>
-          <KindPicker value={kind} onChange={setKind} />
+          <PlantIconComposer value={icon} onChange={setIcon} />
         </div>
 
         {/* Nickname */}

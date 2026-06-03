@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { T } from '../tokens';
-import { Button, Icon, KindPicker } from './index';
-import type { Plant } from '../types/plant';
+import { Button, Icon } from './index';
+import { PlantIconComposer } from './PlantIconComposer';
+import type { Plant, IconRecipe } from '../types/plant';
 import type { Area } from '../types/area';
 import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery } from '../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../api/plantbook';
@@ -27,7 +28,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
   const [selectedProfile, setSelectedProfile] = useState<PlantProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  const [kind, setKind] = useState<Plant['kind'] | undefined>(undefined);
+  const [icon, setIcon] = useState<IconRecipe | undefined>(undefined);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +110,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
       await onAdd({
         name: name.trim(),
         species: selectedProfile ? selectedProfile.display_name : speciesQuery.trim(),
-        kind: kind,
+        icon: icon,
         room: room.trim() || (areas[0] ? areas[0].name : ''),
         every: Number(every) || 7,
         light: selectedProfile ? (luxToLabel(selectedProfile.min_light_lux, selectedProfile.max_light_lux) || '') : '',
@@ -127,7 +128,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
         maxEnvHumid: selectedProfile?.max_env_humid,
       });
       setName(''); setRoom(''); setNote(''); setEvery(7);
-      setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false); setKind(undefined);
+      setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false); setIcon(undefined);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to add plant.');
@@ -294,7 +295,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
 
             <div>
               <label style={labelStyle}>Icon</label>
-              <KindPicker value={kind} onChange={setKind} />
+              <PlantIconComposer value={icon} onChange={setIcon} />
             </div>
             <div>
               <label style={labelStyle}>Room</label>

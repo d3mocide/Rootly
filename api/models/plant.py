@@ -7,14 +7,6 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
-class PlantKind(str, enum.Enum):
-    monstera = "monstera"
-    fig = "fig"
-    pothos = "pothos"
-    snake = "snake"
-    succulent = "succulent"
-
-
 class PlantStatus(str, enum.Enum):
     dry = "dry"
     soon = "soon"
@@ -30,7 +22,7 @@ class Plant(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
     species = Column(String, nullable=False, default="")
-    kind = Column(Enum(PlantKind), nullable=True)
+    icon = Column(JSON, nullable=True)
     room = Column(String, nullable=False, default="")
     moisture = Column(Float, nullable=False, default=0.5)
     status = Column(Enum(PlantStatus), nullable=False, default=PlantStatus.thriving)

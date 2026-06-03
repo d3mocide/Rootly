@@ -111,7 +111,7 @@ export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete, onLogG
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 6 }}>
-            <PlantArt kind={plant.kind} size={120} />
+            <PlantArt icon={plant.icon} size={120} />
             <h1 style={{ margin: '10px 0 0', fontFamily: T.display, fontWeight: 700, fontSize: 27, color: T.ink, letterSpacing: '-0.02em' }}>{plant.name}</h1>
             <div style={{ fontFamily: T.sans, fontStyle: 'italic', fontSize: 14, color: T.ink3, marginTop: 2 }}>{plant.species}</div>
             <div style={{ marginTop: 12 }}><StatusPill status={plant.status} /></div>

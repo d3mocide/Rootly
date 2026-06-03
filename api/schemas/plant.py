@@ -1,8 +1,8 @@
 from pydantic import BaseModel, model_validator, field_validator
 from datetime import datetime, timezone
 from uuid import UUID
-from typing import Optional, List
-from models.plant import PlantKind, PlantStatus
+from typing import Optional, List, Any
+from models.plant import PlantStatus
 
 
 def _normalize_last_water(v):
@@ -21,7 +21,7 @@ def _normalize_last_water(v):
 class PlantCreate(BaseModel):
     name: str
     species: str = ""
-    kind: Optional[PlantKind] = None
+    icon: Optional[Any] = None
     room: str = ""
     moisture: float = 0.5
     status: PlantStatus = PlantStatus.thriving
@@ -47,7 +47,7 @@ class PlantCreate(BaseModel):
 class PlantUpdate(BaseModel):
     name: Optional[str] = None
     species: Optional[str] = None
-    kind: Optional[PlantKind] = None
+    icon: Optional[Any] = None
     room: Optional[str] = None
     moisture: Optional[float] = None
     status: Optional[PlantStatus] = None
@@ -75,7 +75,7 @@ class PlantResponse(BaseModel):
     user_id: UUID
     name: str
     species: str
-    kind: Optional[PlantKind] = None
+    icon: Optional[Any] = None
     room: str
     moisture: float
     status: PlantStatus

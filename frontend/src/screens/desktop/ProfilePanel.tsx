@@ -118,7 +118,7 @@ export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete, onLogG
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <PlantArt kind={plant.kind} size={80} />
+            <PlantArt icon={plant.icon} size={80} />
             <div>
               <h2 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 24, color: T.ink, letterSpacing: '-0.02em' }}>{plant.name}</h2>
               <div style={{ fontFamily: T.sans, fontStyle: 'italic', fontSize: 13, color: T.ink3, marginTop: 2 }}>{plant.species}</div>

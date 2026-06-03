@@ -46,7 +46,7 @@ export function CareScreen({ plants, onOpen }: Props) {
                   cursor: 'pointer', borderTop: i ? `1px solid ${T.stone100}` : 'none',
                 }}>
                   <div style={{ width: 42, height: 42, borderRadius: '50%', background: T.sprout, display: 'grid', placeItems: 'center' }}>
-                    <PlantArt kind={it.p.kind} size={34} />
+                    <PlantArt icon={it.p.icon} size={34} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontFamily: T.sans, fontSize: 15, fontWeight: 600, color: T.ink }}>{it.p.name}</div>

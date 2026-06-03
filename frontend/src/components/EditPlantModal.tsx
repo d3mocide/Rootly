@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { T } from '../tokens';
-import { Button, Icon, KindPicker } from './index';
-import type { Plant } from '../types/plant';
+import { Button, Icon } from './index';
+import { PlantIconComposer } from './PlantIconComposer';
+import type { Plant, IconRecipe } from '../types/plant';
 import type { Area } from '../types/area';
 
 interface EditPlantModalProps {
@@ -15,7 +16,7 @@ interface EditPlantModalProps {
 export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPlantModalProps) {
   const [name, setName] = useState(plant.name);
   const [species, setSpecies] = useState(plant.species);
-  const [kind, setKind] = useState<Plant['kind'] | undefined>(plant.kind);
+  const [icon, setIcon] = useState<IconRecipe | undefined>(plant.icon);
   const [room, setRoom] = useState(plant.room);
   const [every, setEvery] = useState(plant.every);
   const [light, setLight] = useState(plant.light);
@@ -38,7 +39,7 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
       await onEdit(plant.id, {
         name: name.trim(),
         species: species.trim(),
-        kind,
+        icon,
         room: room.trim(),
         every: Number(every) || 7,
         light: light.trim(),
@@ -176,7 +177,7 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
 
             <div>
               <label style={labelStyle}>Icon</label>
-              <KindPicker value={kind} onChange={setKind} />
+              <PlantIconComposer value={icon} onChange={setIcon} />
             </div>
             <div>
               <label style={labelStyle}>Room</label>

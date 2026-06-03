@@ -1,11 +1,11 @@
 import { apiFetch } from './client';
-import type { Plant } from '../types/plant';
+import type { Plant, IconRecipe } from '../types/plant';
 
 interface ApiPlant {
   id: string;
   name: string;
   species: string;
-  kind: Plant['kind'];
+  icon: IconRecipe | null;
   room: string;
   moisture: number;
   status: Plant['status'];
@@ -26,6 +26,7 @@ interface ApiPlant {
 
 const fromApi = (p: ApiPlant): Plant => ({
   ...p,
+  icon: p.icon ?? undefined,
   moisture: Math.round(p.moisture * 100),
   lastWater: p.last_water ?? '',
   createdAt: p.created_at,
