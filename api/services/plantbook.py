@@ -28,12 +28,22 @@ async def search(query: str) -> list[dict]:
         return json.loads(cached)
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.get(
-            f"{PLANTBOOK_BASE}/plant/search/",
-            params={"alias": query, "limit": 10},
-            headers=_auth_header(),
-        )
-        resp.raise_for_status()
+        try:
+            resp = await client.get(
+                f"{PLANTBOOK_BASE}/plant/search/",
+                params={"alias": query, "limit": 10},
+                headers=_auth_header(),
+            )
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            logger.error(
+                "PlantBook search failed: HTTP %s for query %r — %s",
+                exc.response.status_code, query, exc.response.text[:200],
+            )
+            raise
+        except httpx.HTTPError as exc:
+            logger.error("PlantBook search network error for query %r: %s", query, exc)
+            raise
 
     results = [
         {
