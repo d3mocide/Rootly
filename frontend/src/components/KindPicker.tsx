@@ -1,4 +1,3 @@
-import React from 'react';
 import { T } from '../tokens';
 import { PlantArt } from './PlantArt';
 import type { PlantKind } from '../types/plant';
