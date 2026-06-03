@@ -309,6 +309,7 @@ export function Toast({ message }: { message: string }) {
 // ---- Re-exports -------------------------------------------------
 export { Icon, RootlyMark } from './Icon';
 export { PlantArt } from './PlantArt';
+export { KindPicker } from './KindPicker';
 export { SettingsModal } from './SettingsModal';
 export { AddPlantModal } from './AddPlantModal';
 export { EditPlantModal } from './EditPlantModal';

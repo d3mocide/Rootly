@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { T } from '../../tokens';
-import { Icon } from '../../components';
+import { Icon, KindPicker } from '../../components';
 import type { Plant } from '../../types/plant';
 import type { Area } from '../../types/area';
 import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery } from '../../api/plantbook';
@@ -26,13 +26,20 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
   const [selectedProfile, setSelectedProfile] = useState<PlantProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
+  const [kind, setKind] = useState<Plant['kind'] | undefined>(undefined);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const justSelectedRef = useRef(false);
 
   useEffect(() => {
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
     if (speciesQuery.length < 2) {
       setSearchResults([]);
       setShowDropdown(false);
@@ -65,6 +72,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
   }, []);
 
   const handleSelectSpecies = async (result: PlantSearchResult) => {
+    justSelectedRef.current = true;
     setSpeciesQuery(result.display_name);
     setShowDropdown(false);
     setSelectedProfile(null);
@@ -98,7 +106,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
       await onAdd({
         name: name.trim(),
         species: selectedProfile ? selectedProfile.display_name : speciesQuery.trim(),
-        kind: undefined,
+        kind,
         room: room.trim() || (areas[0] ? areas[0].name : ''),
         every: Number(every) || 7,
         light: selectedProfile ? (luxToLabel(selectedProfile.min_light_lux, selectedProfile.max_light_lux) || '') : '',
@@ -240,6 +248,12 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
             }
           </div>
         )}
+
+        {/* Icon */}
+        <div>
+          <label style={labelStyle}>Icon</label>
+          <KindPicker value={kind} onChange={setKind} />
+        </div>
 
         {/* Nickname */}
         <div>

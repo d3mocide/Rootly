@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { T } from '../tokens';
-import { Button, Icon } from './index';
+import { Button, Icon, KindPicker } from './index';
 import type { Plant } from '../types/plant';
 import type { Area } from '../types/area';
 
@@ -174,41 +174,26 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Kind</label>
-                <select
-                  value={kind ?? ''}
-                  onChange={e => setKind((e.target.value || undefined) as Plant['kind'] | undefined)}
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                >
-                  <option value="">Auto</option>
-                  <option value="monstera">Monstera</option>
-                  <option value="fig">Fiddle-leaf Fig</option>
-                  <option value="pothos">Pothos</option>
-                  <option value="snake">Snake Plant</option>
-                  <option value="succulent">Succulent</option>
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>Room</label>
-                <select
-                  value={room}
-                  onChange={e => setRoom(e.target.value)}
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                >
-                  {areas.map(a => (
-                    <option key={a.id} value={a.name}>
-                      {a.name}
-                    </option>
-                  ))}
-                  {areas.length === 0 && <option value="">No locations available</option>}
-                </select>
-              </div>
+            <div>
+              <label style={labelStyle}>Icon</label>
+              <KindPicker value={kind} onChange={setKind} />
+            </div>
+            <div>
+              <label style={labelStyle}>Room</label>
+              <select
+                value={room}
+                onChange={e => setRoom(e.target.value)}
+                style={inputStyle}
+                onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+              >
+                {areas.map(a => (
+                  <option key={a.id} value={a.name}>
+                    {a.name}
+                  </option>
+                ))}
+                {areas.length === 0 && <option value="">No locations available</option>}
+              </select>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
