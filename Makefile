@@ -1,4 +1,4 @@
-.PHONY: setup up down build build-dev build-prod nuke restart logs shell migrate migration downgrade psql redis dev
+.PHONY: setup up down build build-dev build-prod nuke restart logs shell migrate migration downgrade psql redis dev fe-dev
 SHELL := /bin/bash
 
 # ── First-time setup ──────────────────────────────────────────────────────────
@@ -22,12 +22,10 @@ up:
 down:
 	docker compose down
 
-build: build-prod
-
-build-prod:
+prod:
 	docker compose up -d --build
 
-build-dev:
+dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 restart:
@@ -65,5 +63,5 @@ redis:
 	docker compose exec redis redis-cli
 
 # ── Frontend dev (runs Vite against a local API on port 8000) ─────────────────
-dev:
-	npm run dev
+fe-dev:
+	npm --prefix frontend run dev

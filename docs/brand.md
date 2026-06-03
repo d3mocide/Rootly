@@ -18,7 +18,7 @@ Example copy:
 
 ## Colour Palette
 
-All colours are defined in `src/tokens.ts` as the `T` object. **Always import from there.**
+All colours are defined in `frontend/src/tokens.ts` as the `T` object. **Always import from there.**
 
 ```ts
 import { T } from '../tokens'; // or ../../tokens
@@ -51,7 +51,7 @@ import { T } from '../tokens'; // or ../../tokens
 
 ### Status Colours (in `STATUS_META`)
 
-Status colours live in `src/types/plant.ts` as `STATUS_META`. Hard-code these hex values only when directly rendering a status indicator — never use them as general UI colours.
+Status colours live in `frontend/src/types/plant.ts` as `STATUS_META`. Hard-code these hex values only when directly rendering a status indicator — never use them as general UI colours.
 
 | Status | Colour | Label |
 |---|---|---|
@@ -132,7 +132,7 @@ transition: all .18s cubic-bezier(.22,.61,.36,1);
 
 ## Components
 
-Shared primitives live in `src/components/index.tsx`. Use these before reaching for raw HTML elements.
+Shared primitives live in `frontend/src/components/index.tsx`. Use these before reaching for raw HTML elements.
 
 | Component | Props | Notes |
 |---|---|---|

@@ -1,4 +1,4 @@
-# Rootly — Claude Code Rules
+# Rootly — Agent Rules
 
 ## Project Overview
 

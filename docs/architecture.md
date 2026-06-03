@@ -145,10 +145,10 @@ Examples of planned modules: schedules, growth journal, reminders, fertiliser lo
 Layer 1: DB Model          api/models/<name>.py
 Layer 2: Pydantic Schemas  api/schemas/<name>.py
 Layer 3: Route file        api/routes/<name>.py
-Layer 4: Frontend          src/api/<name>.ts
-                           src/types/<name>.ts
-                           src/screens/mobile/<Name>Screen.tsx
-                           src/screens/desktop/<Name>Desktop.tsx
+Layer 4: Frontend          frontend/src/api/<name>.ts
+                           frontend/src/types/<name>.ts
+                           frontend/src/screens/mobile/<Name>Screen.tsx
+                           frontend/src/screens/desktop/<Name>Desktop.tsx
 ```
 
 ### Checklist for a new MPM module
@@ -174,12 +174,12 @@ Layer 4: Frontend          src/api/<name>.ts
 
 **Frontend**
 
-- [ ] `src/types/<name>.ts` — TypeScript types mirroring Pydantic response schema
-- [ ] `src/api/<name>.ts` — typed API client using `apiFetch` from `./client`
+- [ ] `frontend/src/types/<name>.ts` — TypeScript types mirroring Pydantic response schema
+- [ ] `frontend/src/api/<name>.ts` — typed API client using `apiFetch` from `./client`
   - Map snake_case API fields to camelCase if needed
   - Export: `fetch<Names>`, `apiCreate<Name>`, `apiUpdate<Name>`, `apiDelete<Name>`
-- [ ] `src/screens/mobile/<Name>Screen.tsx` — mobile screen
-- [ ] `src/screens/desktop/<Name>Desktop.tsx` — desktop panel
+- [ ] `frontend/src/screens/mobile/<Name>Screen.tsx` — mobile screen
+- [ ] `frontend/src/screens/desktop/<Name>Desktop.tsx` — desktop panel
 - [ ] Wire into `App.tsx`:
   - Add tab ID to `TabId` union in `TabBar.tsx`
   - Add `{tab === '<name>' && <...>}` render blocks for both layouts
@@ -254,7 +254,7 @@ async def create_schedule(body: ScheduleCreate, user: User = Depends(get_current
 ### Module skeleton — frontend
 
 ```typescript
-// src/types/schedule.ts
+// frontend/src/types/schedule.ts
 export interface Schedule {
   id: string;
   userId: string;
@@ -264,7 +264,7 @@ export interface Schedule {
 ```
 
 ```typescript
-// src/api/schedule.ts
+// frontend/src/api/schedule.ts
 import { apiFetch } from './client';
 import type { Schedule } from '../types/schedule';
 

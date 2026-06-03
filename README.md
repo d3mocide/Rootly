@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/rootly-mark.svg" alt="Rootly" width="72" />
+  <img src="frontend/public/rootly-mark.svg" alt="Rootly" width="72" />
   <h1>Rootly</h1>
   <p><em>Tend your plants. Grow at your own pace.</em></p>
 </div>
@@ -112,20 +112,25 @@ rootly/
 │   ├── routes/             Route handlers (auth, plants, admin)
 │   ├── alembic/            Database migrations
 │   └── main.py             App entry point
-├── src/                    React frontend
-│   ├── api/                API client functions
-│   ├── screens/            Mobile and desktop screen components
-│   │   ├── mobile/
-│   │   └── desktop/
-│   ├── components/         Shared UI primitives
-│   ├── types/              TypeScript types
-│   └── tokens.ts           Design tokens (colours, fonts)
+├── frontend/               React frontend
+│   ├── src/                Source files
+│   │   ├── api/            API client functions
+│   │   ├── screens/        Mobile and desktop screen components
+│   │   │   ├── mobile/
+│   │   │   └── desktop/
+│   │   ├── components/     Shared UI primitives
+│   │   ├── types/          TypeScript types
+│   │   └── tokens.ts       Design tokens (colours, fonts)
+│   ├── public/             Static assets
+│   ├── Dockerfile          Production Dockerfile
+│   ├── Dockerfile.dev      Development Dockerfile
+│   ├── vite.config.ts      Vite configuration
+│   └── package.json        NPM dependencies
 ├── docs/                   Project documentation
 │   ├── architecture.md     System diagram, MPM module pattern
 │   ├── auth.md             Auth flow and security rules
 │   ├── brand.md            Brand guide, colours, typography
 │   └── database.md         Schema, migration workflow
-├── public/                 Static assets
 ├── docker-compose.yml
 └── Makefile
 ```
