@@ -15,6 +15,13 @@ interface ApiPlant {
   growth: number[];
   last_water: string | null;
   created_at: string;
+  plantbook_pid: string | null;
+  min_light_lux: number | null;
+  max_light_lux: number | null;
+  min_temp: number | null;
+  max_temp: number | null;
+  min_env_humid: number | null;
+  max_env_humid: number | null;
 }
 
 const fromApi = (p: ApiPlant): Plant => ({
@@ -22,6 +29,13 @@ const fromApi = (p: ApiPlant): Plant => ({
   moisture: Math.round(p.moisture * 100),
   lastWater: p.last_water ?? '',
   createdAt: p.created_at,
+  plantbookPid: p.plantbook_pid ?? undefined,
+  minLightLux: p.min_light_lux,
+  maxLightLux: p.max_light_lux,
+  minTemp: p.min_temp,
+  maxTemp: p.max_temp,
+  minEnvHumid: p.min_env_humid,
+  maxEnvHumid: p.max_env_humid,
 });
 
 export async function fetchPlants(): Promise<Plant[]> {
@@ -34,7 +48,7 @@ export async function apiWaterPlant(id: string): Promise<Plant> {
 }
 
 export async function apiCreatePlant(plant: Omit<Plant, 'id'>): Promise<Plant> {
-  const { lastWater, moisture, ...rest } = plant;
+  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt, ...rest } = plant;
   return fromApi(
     await apiFetch('/plants', {
       method: 'POST',
@@ -42,13 +56,20 @@ export async function apiCreatePlant(plant: Omit<Plant, 'id'>): Promise<Plant> {
         ...rest,
         moisture: moisture / 100,
         last_water: lastWater || null,
+        plantbook_pid: plantbookPid ?? null,
+        min_light_lux: minLightLux ?? null,
+        max_light_lux: maxLightLux ?? null,
+        min_temp: minTemp ?? null,
+        max_temp: maxTemp ?? null,
+        min_env_humid: minEnvHumid ?? null,
+        max_env_humid: maxEnvHumid ?? null,
       }),
     })
   );
 }
 
 export async function apiUpdatePlant(id: string, updates: Partial<Plant>): Promise<Plant> {
-  const { lastWater, moisture, ...rest } = updates;
+  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt, ...rest } = updates;
   return fromApi(
     await apiFetch(`/plants/${id}`, {
       method: 'PUT',
@@ -56,6 +77,13 @@ export async function apiUpdatePlant(id: string, updates: Partial<Plant>): Promi
         ...rest,
         ...(moisture !== undefined ? { moisture: moisture / 100 } : {}),
         ...(lastWater !== undefined ? { last_water: lastWater } : {}),
+        ...(plantbookPid !== undefined ? { plantbook_pid: plantbookPid } : {}),
+        ...(minLightLux !== undefined ? { min_light_lux: minLightLux } : {}),
+        ...(maxLightLux !== undefined ? { max_light_lux: maxLightLux } : {}),
+        ...(minTemp !== undefined ? { min_temp: minTemp } : {}),
+        ...(maxTemp !== undefined ? { max_temp: maxTemp } : {}),
+        ...(minEnvHumid !== undefined ? { min_env_humid: minEnvHumid } : {}),
+        ...(maxEnvHumid !== undefined ? { max_env_humid: maxEnvHumid } : {}),
       }),
     })
   );

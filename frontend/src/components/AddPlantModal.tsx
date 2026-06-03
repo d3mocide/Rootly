@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { T } from '../tokens';
 import { Button, Icon } from './index';
 import type { Plant } from '../types/plant';
 import type { Area } from '../types/area';
+import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery } from '../api/plantbook';
+import type { PlantSearchResult, PlantProfile } from '../api/plantbook';
 
 interface AddPlantModalProps {
   isOpen: boolean;
@@ -13,48 +15,111 @@ interface AddPlantModalProps {
 
 export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalProps) {
   const [name, setName] = useState('');
-  const [species, setSpecies] = useState('');
-  const [kind, setKind] = useState<'monstera' | 'fig' | 'pothos' | 'snake' | 'succulent'>('monstera');
   const [room, setRoom] = useState('');
-  const [every, setEvery] = useState(7);
-  const [light, setLight] = useState('');
   const [note, setNote] = useState('');
+  const [every, setEvery] = useState(7);
+  const [overrideEvery, setOverrideEvery] = useState(false);
+
+  const [speciesQuery, setSpeciesQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<PlantSearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<PlantProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (speciesQuery.length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const results = await searchPlantbook(speciesQuery);
+        setSearchResults(results);
+        setShowDropdown(results.length > 0);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [speciesQuery]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleSelectSpecies = async (result: PlantSearchResult) => {
+    setSpeciesQuery(result.display_name);
+    setShowDropdown(false);
+    setSelectedProfile(null);
+    setProfileLoading(true);
+    try {
+      const profile = await getPlantbookDetail(result.pid);
+      setSelectedProfile(profile);
+      if (!overrideEvery) setEvery(suggestEvery(profile.min_soil_moist));
+    } catch {
+      // Profile fetch failed — fall back to manual entry
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleClearSpecies = () => {
+    setSpeciesQuery('');
+    setSelectedProfile(null);
+    setSearchResults([]);
+    setShowDropdown(false);
+    setEvery(7);
+    setOverrideEvery(false);
+  };
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setError('Please enter a plant name.');
-      return;
-    }
+    if (!name.trim()) { setError('Please enter a plant name.'); return; }
     setError(null);
     setLoading(true);
     try {
       await onAdd({
         name: name.trim(),
-        species: species.trim(),
-        kind,
+        species: selectedProfile ? selectedProfile.display_name : speciesQuery.trim(),
+        kind: undefined,
         room: room.trim() || (areas[0] ? areas[0].name : ''),
         every: Number(every) || 7,
-        light: light.trim(),
+        light: selectedProfile ? (luxToLabel(selectedProfile.min_light_lux, selectedProfile.max_light_lux) || '') : '',
         note: note.trim(),
         moisture: 100,
         status: 'watered',
         growth: [],
         lastWater: new Date().toISOString(),
+        plantbookPid: selectedProfile?.pid,
+        minLightLux: selectedProfile?.min_light_lux,
+        maxLightLux: selectedProfile?.max_light_lux,
+        minTemp: selectedProfile?.min_temp,
+        maxTemp: selectedProfile?.max_temp,
+        minEnvHumid: selectedProfile?.min_env_humid,
+        maxEnvHumid: selectedProfile?.max_env_humid,
       });
-      // Clear inputs
-      setName('');
-      setSpecies('');
-      setKind('monstera');
-      setRoom('');
-      setEvery(7);
-      setLight('');
-      setNote('');
+      setName(''); setRoom(''); setNote(''); setEvery(7);
+      setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to add plant.');
@@ -64,84 +129,47 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    if (e.target === e.currentTarget) onClose();
   };
 
   const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontFamily: T.sans,
-    fontSize: 13.5,
-    fontWeight: 600,
-    color: T.ink2,
-    marginBottom: 6,
+    display: 'block', fontFamily: T.sans, fontSize: 13.5,
+    fontWeight: 600, color: T.ink2, marginBottom: 6,
   };
-
   const inputStyle: React.CSSProperties = {
-    width: '100%',
-    fontFamily: T.sans,
-    fontSize: 15,
-    padding: '12px 16px',
-    borderRadius: 12,
-    border: `1.5px solid ${T.stone300}`,
-    background: T.card,
-    color: T.ink,
-    boxSizing: 'border-box',
-    outline: 'none',
+    width: '100%', fontFamily: T.sans, fontSize: 15, padding: '12px 16px',
+    borderRadius: 12, border: `1.5px solid ${T.stone300}`, background: T.card,
+    color: T.ink, boxSizing: 'border-box', outline: 'none',
     transition: 'border-color .18s cubic-bezier(.22,.61,.36,1)',
   };
+
+  const lightLabel = selectedProfile ? luxToLabel(selectedProfile.min_light_lux, selectedProfile.max_light_lux) : '';
 
   return (
     <div
       onClick={handleBackdropClick}
       style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        background: 'rgba(30, 42, 34, 0.4)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(30, 42, 34, 0.4)', backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)', display: 'flex',
+        alignItems: 'center', justifyContent: 'center', padding: 20,
         animation: 'fadeIn .18s cubic-bezier(.22,.61,.36,1)',
       }}
     >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 480,
-          background: T.paper,
-          borderRadius: 20,
-          boxShadow: '0 20px 40px rgba(23, 61, 44, 0.15)',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '90vh',
-          animation: 'slideUp .18s cubic-bezier(.22,.61,.36,1)',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
+      <div style={{
+        width: '100%', maxWidth: 480, background: T.paper, borderRadius: 20,
+        boxShadow: '0 20px 40px rgba(23, 61, 44, 0.15)', display: 'flex',
+        flexDirection: 'column', maxHeight: '90vh',
+        animation: 'slideUp .18s cubic-bezier(.22,.61,.36,1)', overflow: 'hidden',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 24px 16px', borderBottom: `1px solid ${T.stone100}` }}>
           <div>
             <h2 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 22, color: T.ink, letterSpacing: '-0.02em' }}>Add a new plant</h2>
-            <div style={{ fontFamily: T.sans, fontSize: 13, color: T.ink3, marginTop: 2 }}>Keep track of your new plant's moisture and care</div>
+            <div style={{ fontFamily: T.sans, fontSize: 13, color: T.ink3, marginTop: 2 }}>Search for a species to auto-fill care details</div>
           </div>
           <button
             onClick={onClose}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: T.stone100,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'grid',
-              placeItems: 'center',
-              transition: 'background .14s',
-            }}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: T.stone100, border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', transition: 'background .14s' }}
             onMouseEnter={e => e.currentTarget.style.background = T.stone200}
             onMouseLeave={e => e.currentTarget.style.background = T.stone100}
           >
@@ -158,50 +186,105 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Plant name</label>
+            {/* Species search */}
+            <div ref={searchRef} style={{ position: 'relative' }}>
+              <label style={labelStyle}>Species</label>
+              <div style={{ position: 'relative' }}>
                 <input
                   type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="e.g. Monstera"
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                  value={speciesQuery}
+                  onChange={e => { setSpeciesQuery(e.target.value); if (selectedProfile) setSelectedProfile(null); }}
+                  placeholder="Search e.g. Monstera deliciosa…"
+                  style={{ ...inputStyle, paddingRight: 40 }}
+                  onFocus={e => { e.currentTarget.style.borderColor = T.fern; if (searchResults.length > 0) setShowDropdown(true); }}
                   onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+                  autoComplete="off"
                 />
+                <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: speciesQuery ? 'auto' : 'none' }}>
+                  {searchLoading || profileLoading
+                    ? <div style={{ width: 16, height: 16, border: `2px solid ${T.stone300}`, borderTopColor: T.fern, borderRadius: '50%', animation: 'spin .6s linear infinite' }} />
+                    : speciesQuery
+                      ? <button type="button" onClick={handleClearSpecies} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'grid', placeItems: 'center' }}>
+                          <Icon name="x" size={15} color={T.ink3} />
+                        </button>
+                      : <Icon name="search" size={15} color={T.ink3} />
+                  }
+                </div>
               </div>
-              <div>
-                <label style={labelStyle}>Species</label>
-                <input
-                  type="text"
-                  value={species}
-                  onChange={e => setSpecies(e.target.value)}
-                  placeholder="e.g. deliciosa"
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                />
+
+              {showDropdown && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
+                  background: T.paper, border: `1.5px solid ${T.stone200}`,
+                  borderRadius: 12, boxShadow: '0 8px 24px rgba(23,61,44,0.12)',
+                  overflow: 'hidden', marginTop: 4,
+                }}>
+                  {searchResults.map(r => (
+                    <button
+                      key={r.pid}
+                      type="button"
+                      onClick={() => handleSelectSpecies(r)}
+                      style={{
+                        width: '100%', padding: '10px 14px', background: 'none', border: 'none',
+                        cursor: 'pointer', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 1,
+                        transition: 'background .12s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = T.linen}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      <span style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 600, color: T.ink }}>{r.display_name}</span>
+                      {r.alias && <span style={{ fontFamily: T.sans, fontSize: 12, color: T.ink3 }}>{r.alias}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Care preview */}
+            {selectedProfile && (
+              <div style={{ background: T.linen, borderRadius: 14, padding: '14px 16px', border: `1px solid ${T.stone200}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 700, color: T.fern, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                  Care guide · PlantBook
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <CareChip label="Water every" value={`~${every} days`} />
+                  {lightLabel && <CareChip label="Light" value={lightLabel} />}
+                  {selectedProfile.min_temp != null && selectedProfile.max_temp != null && (
+                    <CareChip label="Temperature" value={`${selectedProfile.min_temp}–${selectedProfile.max_temp}°C`} />
+                  )}
+                  {selectedProfile.min_env_humid != null && selectedProfile.max_env_humid != null && (
+                    <CareChip label="Humidity" value={`${selectedProfile.min_env_humid}–${selectedProfile.max_env_humid}%`} />
+                  )}
+                </div>
+                {!overrideEvery
+                  ? <button type="button" onClick={() => setOverrideEvery(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: T.sans, fontSize: 12, color: T.ink3, padding: 0, textAlign: 'left', textDecoration: 'underline' }}>
+                      Adjust watering schedule
+                    </button>
+                  : <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontFamily: T.sans, fontSize: 13, color: T.ink2, whiteSpace: 'nowrap' }}>Water every</span>
+                      <input type="number" value={every} onChange={e => setEvery(Number(e.target.value))} min={1}
+                        style={{ ...inputStyle, width: 72, padding: '8px 10px', fontSize: 14 }} />
+                      <span style={{ fontFamily: T.sans, fontSize: 13, color: T.ink2 }}>days</span>
+                    </div>
+                }
               </div>
+            )}
+
+            {/* Nickname */}
+            <div>
+              <label style={labelStyle}>Nickname</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="e.g. My big leafy friend"
+                style={inputStyle}
+                onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+              />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Kind</label>
-                <select
-                  value={kind}
-                  onChange={e => setKind(e.target.value as Plant['kind'])}
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                >
-                  <option value="monstera">Monstera</option>
-                  <option value="fig">Fiddle-leaf Fig</option>
-                  <option value="pothos">Pothos</option>
-                  <option value="snake">Snake Plant</option>
-                  <option value="succulent">Succulent</option>
-                </select>
-              </div>
               <div>
                 <label style={labelStyle}>Room</label>
                 <select
@@ -211,42 +294,25 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
                   onFocus={e => e.currentTarget.style.borderColor = T.fern}
                   onBlur={e => e.currentTarget.style.borderColor = T.stone300}
                 >
-                  {areas.map(a => (
-                    <option key={a.id} value={a.name}>
-                      {a.name}
-                    </option>
-                  ))}
+                  {areas.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
                   {areas.length === 0 && <option value="">No locations available</option>}
                 </select>
               </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Water every (days)</label>
-                <input
-                  type="number"
-                  value={every}
-                  onChange={e => setEvery(Number(e.target.value))}
-                  placeholder="e.g. 7"
-                  min={1}
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>Light level</label>
-                <input
-                  type="text"
-                  value={light}
-                  onChange={e => setLight(e.target.value)}
-                  placeholder="e.g. Bright, indirect"
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                />
-              </div>
+              {!selectedProfile && (
+                <div>
+                  <label style={labelStyle}>Water every (days)</label>
+                  <input
+                    type="number"
+                    value={every}
+                    onChange={e => setEvery(Number(e.target.value))}
+                    placeholder="7"
+                    min={1}
+                    style={inputStyle}
+                    onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                    onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+                  />
+                </div>
+              )}
             </div>
 
             <div>
@@ -254,8 +320,8 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
               <textarea
                 value={note}
                 onChange={e => setNote(e.target.value)}
-                placeholder="e.g. Don't overwater in winter"
-                rows={3}
+                placeholder="Anything to remember about this plant…"
+                rows={2}
                 style={{ ...inputStyle, height: 'auto', resize: 'vertical' }}
                 onFocus={e => e.currentTarget.style.borderColor = T.fern}
                 onBlur={e => e.currentTarget.style.borderColor = T.stone300}
@@ -263,17 +329,23 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
             </div>
           </div>
 
-          {/* Footer actions */}
           <div style={{ padding: '16px 24px 24px', background: T.card, borderTop: `1px solid ${T.stone100}`, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-            <Button variant="secondary" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
+            <Button variant="secondary" onClick={onClose} disabled={loading}>Cancel</Button>
             <Button type="submit" variant="primary" disabled={loading}>
               {loading ? 'Adding...' : 'Add Plant'}
             </Button>
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function CareChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, background: T.card, borderRadius: 10, padding: '8px 10px' }}>
+      <span style={{ fontFamily: T.sans, fontSize: 11, color: T.ink3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</span>
+      <span style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.ink }}>{value}</span>
     </div>
   );
 }

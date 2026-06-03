@@ -14,7 +14,7 @@ interface Props {
 export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
   const [name, setName] = useState(plant.name);
   const [species, setSpecies] = useState(plant.species);
-  const [kind, setKind] = useState<Plant['kind']>(plant.kind);
+  const [kind, setKind] = useState<Plant['kind'] | undefined>(plant.kind);
   const [room, setRoom] = useState(plant.room);
   const [every, setEvery] = useState(plant.every);
   const [light, setLight] = useState(plant.light);
@@ -134,12 +134,13 @@ export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
         <div>
           <label style={labelStyle}>Kind</label>
           <select
-            value={kind}
-            onChange={e => setKind(e.target.value as Plant['kind'])}
+            value={kind ?? ''}
+            onChange={e => setKind((e.target.value || undefined) as Plant['kind'] | undefined)}
             style={inputStyle}
             onFocus={e => e.currentTarget.style.borderColor = T.fern}
             onBlur={e => e.currentTarget.style.borderColor = T.stone200}
           >
+            <option value="">Auto</option>
             <option value="monstera">Monstera</option>
             <option value="fig">Fiddle-leaf Fig</option>
             <option value="pothos">Pothos</option>

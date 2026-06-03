@@ -21,7 +21,7 @@ def _normalize_last_water(v):
 class PlantCreate(BaseModel):
     name: str
     species: str = ""
-    kind: PlantKind
+    kind: Optional[PlantKind] = None
     room: str = ""
     moisture: float = 0.5
     status: PlantStatus = PlantStatus.thriving
@@ -30,6 +30,13 @@ class PlantCreate(BaseModel):
     note: str = ""
     growth: List[float] = []
     last_water: Optional[datetime] = None
+    plantbook_pid: Optional[str] = None
+    min_light_lux: Optional[int] = None
+    max_light_lux: Optional[int] = None
+    min_temp: Optional[float] = None
+    max_temp: Optional[float] = None
+    min_env_humid: Optional[float] = None
+    max_env_humid: Optional[float] = None
 
     @field_validator("last_water", mode="before")
     @classmethod
@@ -49,6 +56,13 @@ class PlantUpdate(BaseModel):
     note: Optional[str] = None
     growth: Optional[List[float]] = None
     last_water: Optional[datetime] = None
+    plantbook_pid: Optional[str] = None
+    min_light_lux: Optional[int] = None
+    max_light_lux: Optional[int] = None
+    min_temp: Optional[float] = None
+    max_temp: Optional[float] = None
+    min_env_humid: Optional[float] = None
+    max_env_humid: Optional[float] = None
 
     @field_validator("last_water", mode="before")
     @classmethod
@@ -61,7 +75,7 @@ class PlantResponse(BaseModel):
     user_id: UUID
     name: str
     species: str
-    kind: PlantKind
+    kind: Optional[PlantKind] = None
     room: str
     moisture: float
     status: PlantStatus
@@ -71,6 +85,13 @@ class PlantResponse(BaseModel):
     growth: List[float]
     last_water: Optional[datetime]
     created_at: datetime
+    plantbook_pid: Optional[str] = None
+    min_light_lux: Optional[int] = None
+    max_light_lux: Optional[int] = None
+    min_temp: Optional[float] = None
+    max_temp: Optional[float] = None
+    min_env_humid: Optional[float] = None
+    max_env_humid: Optional[float] = None
 
     model_config = {"from_attributes": True}
 
