@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rootly — Brand Guide</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  ::selection{background:var(--sprout-deep)}
+
+  /* layout */
+  .shell{display:grid;grid-template-columns:248px 1fr;max-width:1320px;margin:0 auto;min-height:100vh}
+  .side{position:sticky;top:0;align-self:start;height:100vh;padding:32px 24px;border-right:1px solid var(--stone-100);
+    display:flex;flex-direction:column;gap:4px;background:var(--paper)}
+  .brandrow{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+  .brandrow .wm{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-0.03em;color:var(--canopy)}
+  .navlbl{font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-3);margin:18px 0 6px;padding-left:12px}
+  .side a{display:block;font-size:14.5px;font-weight:500;color:var(--ink-2);text-decoration:none;padding:7px 12px;border-radius:8px;transition:background .15s,color .15s}
+  .side a:hover{background:var(--sprout);color:var(--canopy)}
+  .foot{margin-top:auto;font-size:12px;color:var(--ink-3);padding-left:12px;line-height:1.6}
+
+  .main{padding:0 0 120px}
+  section{padding:0 56px;scroll-margin-top:24px}
+  .pad{padding-top:80px}
+
+  /* cover */
+  .cover{min-height:78vh;display:flex;flex-direction:column;justify-content:center;padding:64px 56px 72px;
+    background:radial-gradient(120% 90% at 88% 0%, var(--sprout), transparent 60%);position:relative;overflow:hidden}
+  .cover .mark{position:absolute;right:-60px;top:50%;transform:translateY(-50%);opacity:0.07;color:var(--canopy)}
+  .eyebrow{font-size:13px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--fern)}
+  .cover h1{font-family:var(--font-display);font-weight:700;font-size:84px;line-height:0.98;letter-spacing:-0.04em;margin:20px 0 0;max-width:780px;text-wrap:balance}
+  .cover p{font-size:21px;line-height:1.6;color:var(--ink-2);max-width:560px;margin:24px 0 0}
+  .tagrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:34px}
+  .tag{font-size:13.5px;font-weight:600;color:var(--canopy);background:var(--card);border:1px solid var(--sprout-deep);border-radius:999px;padding:8px 15px}
+
+  /* section heads */
+  h2.sh{font-family:var(--font-display);font-weight:700;font-size:38px;letter-spacing:-0.03em;margin:0;color:var(--ink)}
+  .lead{font-size:18px;line-height:1.65;color:var(--ink-2);max-width:640px;margin:14px 0 0}
+  .kicker{font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--fern);margin-bottom:14px}
+  h3.mh{font-family:var(--font-display);font-weight:700;font-size:21px;letter-spacing:-0.01em;margin:40px 0 14px;color:var(--ink)}
+
+  /* cards */
+  .card{background:var(--card);border:1px solid var(--stone-100);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+
+  /* swatches */
+  .sw{border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--stone-100)}
+  .sw .chip{height:96px}
+  .sw .meta{padding:11px 13px}
+  .sw .nm{font-size:14px;font-weight:600}
+  .sw .hx{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-3);margin-top:2px}
+  .sw .role{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+
+  /* type specimens */
+  .spec{border-bottom:1px solid var(--stone-100);padding:16px 0;display:flex;align-items:baseline;gap:20px}
+  .spec:last-child{border-bottom:0}
+  .spec .tok{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-3);width:150px;flex:none;line-height:1.5}
+  .spec .demo{letter-spacing:-0.02em;line-height:1.1;color:var(--ink)}
+
+  /* tokens table */
+  .tok-row{display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--stone-100)}
+  .tok-row:last-child{border-bottom:0}
+  .tok-row .vis{flex:none}
+  .tok-row .nm{font-size:14px;font-weight:600;width:90px;flex:none}
+  .tok-row .px{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-3);width:64px;flex:none}
+  .tok-row .use{font-size:13.5px;color:var(--ink-2)}
+
+  /* voice do/dont */
+  .vo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .vbox{border-radius:var(--radius-md);padding:20px 22px}
+  .vbox.do{background:var(--success-soft)}
+  .vbox.dont{background:var(--dry-soft)}
+  .vbox .vh{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;margin-bottom:12px}
+  .vbox.do .vh{color:#2f6f46}
+  .vbox.dont .vh{color:#9a4636}
+  .vbox ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  .vbox li{font-size:15px;line-height:1.45;color:var(--ink)}
+  .vbox.dont li{color:var(--ink-2)}
+
+  /* principle list */
+  .princ{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--stone-100)}
+  .princ:last-child{border-bottom:0}
+  .princ .n{font-family:var(--font-mono);font-size:13px;color:var(--fern);flex:none;width:34px;padding-top:2px}
+  .princ .t{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--ink)}
+  .princ .d{font-size:14.5px;color:var(--ink-2);margin-top:3px;line-height:1.55;max-width:560px}
+
+  /* misc */
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;border-radius:999px;padding:5px 11px}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:15px;font-weight:600;border-radius:999px;padding:12px 20px;border:1.5px solid transparent;cursor:default;line-height:1}
+  .ic{display:inline-grid;place-items:center}
+  .note{font-size:13.5px;color:var(--ink-3);background:var(--linen);border-radius:var(--radius-sm);padding:12px 15px;line-height:1.55;margin-top:16px}
+  .note b{color:var(--ink-2)}
+
+  @media(max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}section,.cover{padding-left:28px;padding-right:28px}.cover h1{font-size:56px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="brandrow">
+      <span id="sidemark" class="ic"></span>
+      <span class="wm">rootly</span>
+    </div>
+    <div class="navlbl">Foundations</div>
+    <a href="#story">Brand story</a>
+    <a href="#principles">Principles</a>
+    <a href="#logo">Logo</a>
+    <a href="#color">Color</a>
+    <a href="#type">Typography</a>
+    <a href="#space">Spacing &amp; shape</a>
+    <a href="#elevation">Elevation</a>
+    <a href="#motion">Motion</a>
+    <div class="navlbl">Expression</div>
+    <a href="#voice">Voice &amp; tone</a>
+    <a href="#icons">Iconography</a>
+    <a href="#components">Components</a>
+    <div class="foot">Rootly Brand Guide<br>v1 · June 2026<br>Tokens: <code style="font-family:var(--font-mono);font-size:11px">colors_and_type.css</code></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- COVER -->
+    <div class="cover">
+      <div class="mark" id="covermark"></div>
+      <div class="eyebrow">Brand Guide · v1</div>
+      <h1>Grow from the root up.</h1>
+      <p>Rootly helps people care for plants with less guesswork and more confidence — turning care into a routine that feels natural and stays out of the way until needed.</p>
+      <div class="tagrow">
+        <span class="tag">Warm</span><span class="tag">Capable</span><span class="tag">Nature-first</span>
+        <span class="tag">Calm</span><span class="tag">A little playful</span>
+      </div>
+    </div>
+
+    <!-- STORY -->
+    <section id="story" class="pad">
+      <div class="kicker">The idea</div>
+      <h2 class="sh">A calm, helpful plant companion.</h2>
+      <p class="lead">Rootly makes watering and care feel simple instead of fussy. It “gets” plants at the roots — hydration, growth, routines — without sounding clinical or overly cute. The brand lives in the sweet spot between <strong>friendly</strong> and <strong>capable</strong>: clean and modern, nature-first, with a subtle smart-home intelligence, and trustworthy enough to hand over your reminders.</p>
+    </section>
+
+    <!-- PRINCIPLES -->
+    <section id="principles" class="pad">
+      <div class="kicker">Principles</div>
+      <h2 class="sh">What keeps Rootly, Rootly.</h2>
+      <div class="card" style="padding:8px 28px;margin-top:28px">
+        <div class="princ"><div class="n">01</div><div><div class="t">Calm over loud</div><div class="d">Generous white space, one focal point per screen, one accent moment. We never shout, alarm, or clutter. Quiet confidence beats urgency.</div></div></div>
+        <div class="princ"><div class="n">02</div><div><div class="t">Useful, then warm</div><div class="d">Every screen answers “what does my plant need?” first. Warmth comes from tone and soft motifs — never at the cost of clarity.</div></div></div>
+        <div class="princ"><div class="n">03</div><div><div class="t">Below the surface</div><div class="d">We surface what’s usually invisible — moisture, growth, routine — and make it legible. Care that starts at the roots.</div></div></div>
+        <div class="princ"><div class="n">04</div><div><div class="t">Out of the way</div><div class="d">Rootly stays quiet until it matters, then nudges gently. Fewer, better notifications. The app earns trust by respecting attention.</div></div></div>
+      </div>
+    </section>
+
+    <!-- LOGO -->
+    <section id="logo" class="pad">
+      <div class="kicker">Logo</div>
+      <h2 class="sh">The sprout &amp; roots mark.</h2>
+      <p class="lead">Leaves above, roots below the soil line — a single glyph for “care that starts beneath the surface.” Pair the mark with the lowercase <strong>rootly</strong> wordmark set in Bricolage Grotesque.</p>
+      <div class="grid g4" style="margin-top:28px">
+        <div class="card" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:34px 0">
+          <span id="lk1" class="ic"></span><span style="font-family:var(--font-display);font-weight:700;font-size:30px;letter-spacing:-0.03em;color:var(--canopy)">rootly</span>
+        </div>
+        <div class="card" style="display:grid;place-items:center;padding:34px 0;background:var(--sprout)"><span id="lk2" class="ic"></span></div>
+        <div class="card" style="display:grid;place-items:center;padding:34px 0;background:var(--moss)"><span id="lk3" class="ic"></span></div>
+        <div class="card" style="display:grid;place-items:center;padding:34px 0;background:var(--sun-soft)"><span id="lk4" class="ic"></span></div>
+      </div>
+      <h3 class="mh">Clear space &amp; don’ts</h3>
+      <div class="grid g2">
+        <div class="vbox do"><div class="vh">Do</div><ul>
+          <li>Keep clear space of at least the leaf-height around the mark.</li>
+          <li>Use Canopy on light, Paper/white on dark, or single-color.</li>
+          <li>Let the mark carry warmth — pair with plenty of white space.</li>
+        </ul></div>
+        <div class="vbox dont"><div class="vh">Don’t</div><ul>
+          <li>Recolor the mark in off-brand hues or apply gradients to it.</li>
+          <li>Stretch, rotate, add shadows, or outline the wordmark.</li>
+          <li>Use the mark as an inline UI icon — it’s the logo only.</li>
+        </ul></div>
+      </div>
+    </section>
+
+    <!-- COLOR -->
+    <section id="color" class="pad">
+      <div class="kicker">Color</div>
+      <h2 class="sh">A green core, warm paper, one fresh accent.</h2>
+      <p class="lead">Botanical greens root the system. Warm paper neutrals give it air. A single honeyed accent — <strong>Sun</strong> — supplies warmth for exactly one moment per view. We deliberately avoid neon “eco-app” greens and cool grays.</p>
+
+      <h3 class="mh">Greens — the root</h3>
+      <div class="grid g3" id="greens"></div>
+      <h3 class="mh">Warm neutrals</h3>
+      <div class="grid g3" id="neutrals"></div>
+      <h3 class="mh">Accent — Sun &amp; ink</h3>
+      <div class="grid g3" id="accentink"></div>
+      <h3 class="mh">Status</h3>
+      <div class="grid g4" id="status"></div>
+      <div class="note"><b>Usage ratio.</b> Roughly 70% paper/neutral, 22% green, 8% everything else — with Sun reserved for a single CTA or “due” highlight. Status tints are for backgrounds; their solid twins are for dots, icons, and text.</div>
+    </section>
+
+    <!-- TYPE -->
+    <section id="type" class="pad">
+      <div class="kicker">Typography</div>
+      <h2 class="sh">Characterful display, humanist text.</h2>
+      <p class="lead"><strong>Bricolage Grotesque</strong> brings friendly character to headlines and big numbers. <strong>Hanken Grotesk</strong> handles everything functional with warm legibility. <strong>DM Mono</strong> sets data — moisture %, day counts, growth.</p>
+      <div class="card" style="padding:6px 28px;margin-top:26px">
+        <div class="spec"><div class="tok">Display · Bricolage<br>66 / 700 / -0.02em</div><div class="demo" style="font-family:var(--font-display);font-weight:700;font-size:46px">Know when to water</div></div>
+        <div class="spec"><div class="tok">H1 · Bricolage<br>40 / 700</div><div class="demo" style="font-family:var(--font-display);font-weight:700;font-size:34px">Your plants, at a glance</div></div>
+        <div class="spec"><div class="tok">H2 · Bricolage<br>32 / 600</div><div class="demo" style="font-family:var(--font-display);font-weight:600;font-size:27px">Doing well this week</div></div>
+        <div class="spec"><div class="tok">Lead · Hanken<br>18 / 400 / 1.65</div><div class="demo" style="font-family:var(--font-sans);font-weight:400;font-size:18px;color:var(--ink-2);letter-spacing:0">Care that starts below the surface.</div></div>
+        <div class="spec"><div class="tok">Body · Hanken<br>16 / 400 / 1.5</div><div class="demo" style="font-family:var(--font-sans);font-weight:400;font-size:16px;letter-spacing:0">Watering scheduled for tomorrow morning.</div></div>
+        <div class="spec"><div class="tok">Eyebrow · Hanken<br>12 / 600 / caps</div><div class="demo" style="font-family:var(--font-sans);font-weight:600;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-3)">This morning</div></div>
+        <div class="spec"><div class="tok">Data · DM Mono<br>tabular</div><div class="demo" style="font-family:var(--font-mono);font-weight:500;font-size:26px;color:var(--canopy)">72%&nbsp;&nbsp;·&nbsp;&nbsp;+4cm&nbsp;&nbsp;·&nbsp;&nbsp;9d</div></div>
+      </div>
+      <div class="note"><b>Rules.</b> Sentence case everywhere (buttons, nav, headings). Body never below 16px; 12px caption floor. Tight tracking on display sizes only. Set all numbers/units in DM Mono.</div>
+    </section>
+
+    <!-- SPACE -->
+    <section id="space" class="pad">
+      <div class="kicker">Spacing &amp; shape</div>
+      <h2 class="sh">A 4px grid and friendly radii.</h2>
+      <div class="grid g2" style="margin-top:26px">
+        <div class="card" style="padding:24px 26px">
+          <h3 class="mh" style="margin-top:0">Spacing scale</h3>
+          <div id="spaceScale"></div>
+        </div>
+        <div class="card" style="padding:24px 26px">
+          <h3 class="mh" style="margin-top:0">Corner radii</h3>
+          <div id="radii" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:8px"></div>
+          <div class="note" style="margin-top:24px"><b>Default 14px</b> for cards &amp; inputs · 20–28px for hero/feature cards · pill for buttons &amp; chips · circle only for avatars, the FAB, and status dots.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ELEVATION -->
+    <section id="elevation" class="pad">
+      <div class="kicker">Elevation</div>
+      <h2 class="sh">Soft, warm-tinted shadows.</h2>
+      <p class="lead">Elevation reads through blur and a hair of offset — never darkness. Shadows are tinted with ink, never pure black. On Paper, a card’s shadow alone separates it; add a 1px Stone border only on white-on-white.</p>
+      <div class="grid g4" style="margin-top:28px" id="elev"></div>
+    </section>
+
+    <!-- MOTION -->
+    <section id="motion" class="pad">
+      <div class="kicker">Motion</div>
+      <h2 class="sh">Calm and gentle.</h2>
+      <div class="grid g2" style="margin-top:26px">
+        <div class="card" style="padding:24px 26px">
+          <h3 class="mh" style="margin-top:0">Easing &amp; timing</h3>
+          <div class="tok-row"><span class="nm">Standard</span><span class="px">240ms</span><span class="use">ease-out · most transitions</span></div>
+          <div class="tok-row"><span class="nm">Soft</span><span class="px">420ms</span><span class="use">gentle overshoot · logging, checks</span></div>
+          <div class="tok-row"><span class="nm">Fast</span><span class="px">140ms</span><span class="use">hover, press feedback</span></div>
+        </div>
+        <div class="card" style="padding:24px 26px">
+          <h3 class="mh" style="margin-top:0">Behaviour</h3>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:10px;font-size:15px;color:var(--ink-2);line-height:1.5">
+            <li>Fades with small translate/scale (≤8px, .96–1).</li>
+            <li>Press: scale to .97, shift to the deeper token.</li>
+            <li>Reminders ease in softly — never jarring.</li>
+            <li>No decorative spinners, no heavy bounce, no infinite loops.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- VOICE -->
+    <section id="voice" class="pad">
+      <div class="kicker">Voice &amp; tone</div>
+      <h2 class="sh">Gentle and useful.</h2>
+      <p class="lead">A knowledgeable friend, never a lecturing app. Speak to the user as <strong>“you”</strong>; let <strong>Rootly</strong> act in the third person. Name the plant directly. Sentence case, low pressure, present tense. No emoji in product UI.</p>
+      <div class="vo" style="margin-top:26px">
+        <div class="vbox do"><div class="vh">Do — say things like</div><ul>
+          <li>“Your monstera is due for a drink.”</li>
+          <li>“Soil looks good for now.”</li>
+          <li>“Growth is steady this week.”</li>
+          <li>“Rootly noticed lower moisture.”</li>
+          <li>“Nice — that’s three weeks of steady care.”</li>
+        </ul></div>
+        <div class="vbox dont"><div class="vh">Don’t</div><ul>
+          <li>“ALERT: Hydration levels critical!”</li>
+          <li>“Water your plant NOW!!!”</li>
+          <li>“Optimize your plant’s H₂O intake.”</li>
+          <li>“Oopsie! Your planty-wanty is thirsty 🥺🌱”</li>
+        </ul></div>
+      </div>
+      <div class="note"><b>Microcopy.</b> Empty states invite (“No plants yet. Add your first to start tracking.”). Confirmations stay warm and brief (“Logged. Watered today.”). Time is plain language — “tomorrow”, “in 3 days”, “5 days ago” — not timestamps.</div>
+    </section>
+
+    <!-- ICONS -->
+    <section id="icons" class="pad">
+      <div class="kicker">Iconography</div>
+      <h2 class="sh">Lucide line icons.</h2>
+      <p class="lead">Clean, rounded, even-stroke line icons — recolored with currentColor at 20–24px, 1.75–2px stroke. Never mix filled and outline in one view; status dots are the only solid glyphs. Emoji and unicode symbols are not used as icons.</p>
+      <div class="card" style="padding:30px 28px;margin-top:26px"><div id="iconrow" style="display:flex;flex-wrap:wrap;gap:26px;color:var(--canopy)"></div></div>
+      <div class="note"><b>Substitution flag:</b> Lucide is a deliberate brand match, not a supplied set — no proprietary icon library existed. Swap the reference if Rootly later commissions custom icons.</div>
+    </section>
+
+    <!-- COMPONENTS -->
+    <section id="components" class="pad">
+      <div class="kicker">Components</div>
+      <h2 class="sh">Foundational UI.</h2>
+
+      <h3 class="mh">Buttons</h3>
+      <div class="card" style="padding:26px 28px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <span class="btn" style="background:var(--canopy);color:var(--ink-on-dark)"><span id="b1" class="ic"></span>Water now</span>
+        <span class="btn" style="background:var(--card);color:var(--ink);border-color:var(--stone-300)">Snooze</span>
+        <span class="btn" style="background:transparent;color:var(--canopy)">Not today</span>
+        <span class="btn" style="background:var(--sun);color:#3a2c12"><span id="b2" class="ic"></span>Add plant</span>
+        <span class="btn" style="background:var(--canopy);color:var(--ink-on-dark);opacity:.45">Disabled</span>
+      </div>
+
+      <h3 class="mh">Status pills</h3>
+      <div class="card" style="padding:26px 28px;display:flex;gap:10px;flex-wrap:wrap">
+        <span class="pill" style="background:var(--dry-soft);color:#9a4636"><span class="dot" style="background:#BC5B49"></span>Needs water</span>
+        <span class="pill" style="background:var(--warning-soft);color:#9c6520"><span class="dot" style="background:#C9852F"></span>Due soon</span>
+        <span class="pill" style="background:var(--success-soft);color:#2f6f46"><span class="dot" style="background:#3E8E5A"></span>Thriving</span>
+        <span class="pill" style="background:var(--water-soft);color:#3f6f96"><span class="dot" style="background:#5E8FB8"></span>Watered today</span>
+        <span class="pill" style="background:var(--linen);color:var(--ink-3)"><span class="dot" style="background:var(--ink-3)"></span>Resting</span>
+      </div>
+
+      <h3 class="mh">Cards &amp; inputs</h3>
+      <div class="grid g2">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="height:96px;background:linear-gradient(150deg,var(--sprout),var(--sprout-deep));display:grid;place-items:center"><span id="pcicon" class="ic"></span></div>
+          <div style="padding:14px 16px">
+            <div style="font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:-0.02em">Monstera</div>
+            <div style="font-size:13px;color:var(--ink-3);margin-top:1px">Living room</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+              <span style="font-family:var(--font-mono);font-size:13px;color:var(--ink-2)">72%</span>
+              <span class="pill" style="background:var(--success-soft);color:#2f6f46;font-size:12px"><span class="dot" style="background:#3E8E5A;width:7px;height:7px"></span>Thriving</span>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:22px 24px">
+          <label style="font-size:13px;font-weight:600;color:var(--ink-2);display:block;margin-bottom:7px">Plant name</label>
+          <div style="font-size:15px;color:var(--ink);background:var(--paper);border:1.5px solid var(--stone-200);border-radius:var(--radius-md);padding:12px 14px">Monstera deliciosa</div>
+          <label style="font-size:13px;font-weight:600;color:var(--ink-2);display:block;margin:16px 0 7px">Room <span style="color:var(--fern);font-weight:500">· focused</span></label>
+          <div style="font-size:15px;color:var(--ink);background:var(--card);border:1.5px solid var(--fern);border-radius:var(--radius-md);padding:12px 14px;box-shadow:var(--shadow-focus);display:flex;justify-content:space-between;align-items:center">Living room <span id="chev" class="ic"></span></div>
+        </div>
+      </div>
+      <div class="note">A live, interactive build of these components — plus full screens and flows — lives in the <b>App UI Kit</b> (<code style="font-family:var(--font-mono);font-size:11px">ui_kits/app/index.html</code>).</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const ICONS = {
+  droplet:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+  droplets:'<path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 4.8 7 3.5c-.29 1.3-1.14 2.63-2.29 3.56S3 11.09 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>',
+  leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  calendar:'<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  chart:'<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
+  trendingUp:'<path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/>',
+  plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  settings:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  chevronRight:'<path d="m9 18 6-6-6-6"/>',
+  chevronDown:'<path d="m6 9 6 6 6-6"/>',
+  cloudSun:'<path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>',
+};
+function svg(name, size, stroke){return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke||1.9}" stroke-linecap="round" stroke-linejoin="round" style="display:block">${ICONS[name]||''}</svg>`;}
+function mark(size,color,op2){return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" fill="none"><g stroke="${color}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M24 19 V30.5"/><path d="M24 30.5 C19.5 34 16.5 38 15 43.5"/><path d="M24 30.5 V44"/><path d="M24 30.5 C28.5 34 31.5 38 33 43.5"/></g><path d="M24.2 21 C24.2 12.5 18.5 6 9.5 5 C8.6 14.2 14.8 20.6 24.2 21 Z" fill="${color}"/><path d="M24.2 21 C24.2 13.5 29 8 36.6 7.2 C37.2 14.8 32.4 20.4 24.2 21 Z" fill="${color}" opacity="${op2||0.6}"/></svg>`;}
+
+// marks
+sidemark.innerHTML = mark(30,'#20503B');
+covermark.innerHTML = mark(440,'#20503B');
+lk1.innerHTML = mark(40,'#20503B'); lk2.innerHTML = mark(52,'#20503B'); lk3.innerHTML = mark(52,'#F3F6EF'); lk4.innerHTML = mark(52,'#20503B');
+
+// swatches
+function swatch(nm,hx,role,dark){return `<div class="sw"><div class="chip" style="background:${hx}"></div><div class="meta" style="${dark?'':''}"><div class="nm">${nm}</div><div class="hx">${hx}</div><div class="role">${role}</div></div></div>`;}
+greens.innerHTML = [['Canopy','#20503B','Primary'],['Moss','#173D2C','Deep / pressed'],['Fern','#3A7D55','Active on dark'],['Sage','#7E9B79','Secondary green'],['Sage soft','#A9C2A1','Chips, fills'],['Sprout','#E9F1E4','Tint background']].map(c=>swatch(...c)).join('');
+neutrals.innerHTML = [['Paper','#FBFAF6','Page background'],['Card','#FFFFFF','Raised surface'],['Linen','#F4F1E9','Inset wells'],['Stone 100','#ECE8DE','Hairline border'],['Stone 200','#E0DBCE','Default border'],['Stone 300','#CFC9B8','Strong divider']].map(c=>swatch(...c)).join('');
+accentink.innerHTML = [['Sun','#E0A050','Accent — one per view'],['Sun deep','#C9852F','Pressed / accent text'],['Sun soft','#FBEAD0','Accent tint'],['Ink','#1E2A22','Primary text'],['Ink 2','#4C564E','Secondary text'],['Ink 3','#7C857B','Captions / placeholder']].map(c=>swatch(...c)).join('');
+document.getElementById('status').innerHTML = [['Water','#5E8FB8','Info'],['Success','#3E8E5A','Thriving'],['Warning','#C9852F','Due soon'],['Dry','#BC5B49','Overdue']].map(c=>swatch(...c)).join('');
+
+// spacing scale
+const spaces=[['1',4],['2',8],['3',12],['4',16],['6',24],['8',32],['12',48],['16',64]];
+spaceScale.innerHTML = spaces.map(([n,px])=>`<div class="tok-row"><span class="nm">space-${n}</span><span class="px">${px}px</span><span class="vis" style="height:14px;width:${px}px;background:var(--sage-soft);border-radius:3px"></span></div>`).join('');
+
+// radii
+const radii_=[['xs',6],['sm',10],['md',14],['lg',20],['xl',28],['pill',999]];
+radii.innerHTML = radii_.map(([n,r])=>`<div style="text-align:center"><div style="width:64px;height:52px;background:var(--sprout);border:1.5px solid var(--sage-soft);border-radius:${r}px"></div><div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);margin-top:7px">${n} · ${r>900?'∞':r}</div></div>`).join('');
+
+// elevation
+const elevs=[['xs','var(--shadow-xs)','hairline'],['sm','var(--shadow-sm)','card'],['md','var(--shadow-md)','raised'],['lg','var(--shadow-lg)','sheet / modal']];
+elev.innerHTML = elevs.map(([n,s,u])=>`<div style="text-align:center"><div style="height:84px;background:var(--card);border-radius:var(--radius-md);box-shadow:${s}"></div><div style="font-size:13px;font-weight:600;margin-top:14px">${n}</div><div style="font-size:12px;color:var(--ink-3);margin-top:1px">${u}</div></div>`).join('');
+
+// icon row
+const iconNames=['leaf','droplet','droplets','sun','cloudSun','bell','calendar','trendingUp','chart','camera','search','settings','plus','check','home','chevronRight'];
+iconrow.innerHTML = iconNames.map(n=>`<span title="${n}">${svg(n,26,1.85)}</span>`).join('');
+
+// component glyphs
+b1.innerHTML = svg('droplet',18,2); b2.innerHTML = svg('plus',18,2.2);
+pcicon.innerHTML = `<span style="color:#3A7D55">${svg('leaf',54,1.6)}</span>`;
+chev.innerHTML = `<span style="color:var(--ink-3)">${svg('chevronDown',18,2)}</span>`;
+</script>
+</body>
+</html>
