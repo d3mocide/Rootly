@@ -24,6 +24,7 @@ services:
       TZ: ${TIMEZONE:-UTC}
       PLANTBOOK_CLIENT_ID: ${PLANTBOOK_CLIENT_ID:-}
       PLANTBOOK_CLIENT_SECRET: ${PLANTBOOK_CLIENT_SECRET:-}
+      PLANTBOOK_API_KEY: ${PLANTBOOK_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy

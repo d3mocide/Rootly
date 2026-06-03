@@ -22,6 +22,7 @@ _token_cache: dict = {"token": None, "expires_at": 0.0}
 
 
 async def _get_access_token() -> str:
+    """Fetch (and cache) an OAuth2 Bearer token using client credentials."""
     if _token_cache["token"] and time.monotonic() < _token_cache["expires_at"]:
         return _token_cache["token"]
 
@@ -40,6 +41,7 @@ async def _get_access_token() -> str:
                     "grant_type": "client_credentials",
                     "client_id": settings.plantbook_client_id,
                     "client_secret": settings.plantbook_client_secret,
+                    "scope": "read",
                 },
             )
             resp.raise_for_status()
@@ -66,6 +68,9 @@ async def _get_access_token() -> str:
 
 
 async def _auth_header() -> dict:
+    # API-key auth is simpler and never expires — prefer it when configured
+    if settings.plantbook_api_key:
+        return {"Authorization": f"Token {settings.plantbook_api_key}"}
     token = await _get_access_token()
     return {"Authorization": f"Bearer {token}"}
 
