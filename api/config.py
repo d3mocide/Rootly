@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     cors_origins: str = ""
     production: bool = False
     timezone: str = "UTC"
-    plantbook_api_key: str = ""
+    plantbook_client_id: str = ""
+    plantbook_client_secret: str = ""
 
     model_config = {"env_file": ".env", "env_ignore_empty": True}
 

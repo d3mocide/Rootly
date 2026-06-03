@@ -15,7 +15,7 @@ router = APIRouter(prefix="/plantbook", tags=["plantbook"])
 
 
 def _require_key() -> None:
-    if not settings.plantbook_api_key:
+    if not settings.plantbook_client_id or not settings.plantbook_client_secret:
         raise HTTPException(status_code=503, detail="PlantBook API not configured")
 
 

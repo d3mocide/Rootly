@@ -22,7 +22,8 @@ services:
       PRODUCTION: ${PRODUCTION:-false}
       TIMEZONE: ${TIMEZONE:-UTC}
       TZ: ${TIMEZONE:-UTC}
-      PLANTBOOK_API_KEY: ${PLANTBOOK_API_KEY:-}
+      PLANTBOOK_CLIENT_ID: ${PLANTBOOK_CLIENT_ID:-}
+      PLANTBOOK_CLIENT_SECRET: ${PLANTBOOK_CLIENT_SECRET:-}
     depends_on:
       postgres:
         condition: service_healthy
