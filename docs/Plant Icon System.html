@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rootly — Plant Icon System</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  /* ---- Icon slot system -------------------------------------------------
+     A plant icon = ONE base silhouette + a "skin" (a set of CSS variables).
+     Every fillable region of a base is bound to a named slot, so a variant
+     is pure data — override the slots, the paths never change. */
+  :root {
+    --leaf-1: #256B45;      /* deep / back leaves        */
+    --leaf-2: #3A7D55;      /* mid                       */
+    --leaf-3: #5AA277;      /* light / front leaves      */
+    --stem:   #3A7D55;      /* stems & petioles          */
+    --vein:   #E9F1E4;      /* structural highlights     */
+    --variegation: transparent;  /* optional leaf marking */
+    --bloom:  transparent;       /* optional flower accent (legacy dot) */
+    --bloom-center: #E8A23C;     /* flower-head: disc / throat / eye    */
+    --bloom-2:      #C9852F;     /* flower-head: beard / stamen / tips  */
+    --pot-body: #C98A5E;    /* clay pot body             */
+    --pot-rim:  #B97A4F;    /* clay pot rim              */
+  }
+
+  .ic svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .ic .leaf-1 { fill: var(--leaf-1); }
+  .ic .leaf-2 { fill: var(--leaf-2); }
+  .ic .leaf-3 { fill: var(--leaf-3); }
+  .ic .stem   { stroke: var(--stem); fill: none; stroke-linecap: round; }
+  .ic .vein   { stroke: var(--vein); fill: none; stroke-linecap: round; }
+  .ic .variegation { fill: var(--variegation); }
+  .ic .vein-veg    { stroke: var(--variegation); fill: none; stroke-linecap: round; }
+  .ic .bloom  { fill: var(--bloom); }
+  .ic .bloom-stroke { stroke: var(--bloom); fill: none; stroke-linecap: round; }
+  /* flower-head slots — petals + center + accent (from the flower study) */
+  .ic .petal  { fill: var(--bloom); }
+  .ic .center { fill: var(--bloom-center); }
+  .ic .accent { fill: var(--bloom-2); }
+  .ic .accent-stroke { stroke: var(--bloom-2); fill: none; stroke-linecap: round; }
+  .ic .pot-body { fill: var(--pot-body); }
+  .ic .pot-rim  { fill: var(--pot-rim); }
+
+  /* ---- Page scaffold ----------------------------------------------------- */
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+
+  /* generous section rhythm */
+  section { padding: 80px 0; border-top: 1px solid var(--stone-100); }
+  section:first-of-type { border-top: none; }
+
+  .eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .eyebrow .num {
+    font-family: var(--font-mono); font-size: 13px; color: var(--fern);
+    background: var(--sprout); border: 1px solid var(--sprout-deep);
+    border-radius: var(--radius-pill); padding: 2px 10px;
+  }
+  .lead-max { max-width: 660px; }
+  p.note { max-width: 640px; }
+
+  /* ---- Hero -------------------------------------------------------------- */
+  .hero { padding-top: 88px; padding-bottom: 64px; }
+  .hero h1 { margin: 0 0 20px; font-size: 64px; }
+  .hero-row { display: flex; gap: 20px; margin-top: 48px; flex-wrap: wrap; }
+  .hero-thumb {
+    width: 132px; height: 132px; border-radius: var(--radius-lg);
+    background: linear-gradient(158deg, var(--sprout), var(--sprout-deep));
+    display: grid; place-items: center; box-shadow: var(--shadow-sm);
+  }
+  .hero-thumb .ic { width: 96px; height: 96px; }
+
+  /* ---- Slot anatomy ------------------------------------------------------ */
+  .anatomy { display: grid; grid-template-columns: 280px 1fr; gap: 56px; align-items: center; }
+  .anatomy-thumb {
+    width: 280px; height: 280px; border-radius: var(--radius-xl);
+    background: linear-gradient(158deg, var(--sprout), var(--sprout-deep));
+    display: grid; place-items: center; box-shadow: var(--shadow-sm);
+  }
+  .anatomy-thumb .ic { width: 200px; height: 200px; }
+  .slot-list { display: grid; gap: 2px; }
+  .slot {
+    display: grid; grid-template-columns: 26px 168px 1fr; align-items: center;
+    gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--stone-100);
+  }
+  .swatch { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(30,42,34,.12); }
+  .swatch.checker {
+    background-image: linear-gradient(45deg, #dcd7c8 25%, transparent 25%, transparent 75%, #dcd7c8 75%),
+                      linear-gradient(45deg, #dcd7c8 25%, transparent 25%, transparent 75%, #dcd7c8 75%);
+    background-size: 10px 10px; background-position: 0 0, 5px 5px; background-color: #fff;
+  }
+  .slot code { font-family: var(--font-mono); font-size: 13px; color: var(--ink); }
+  .slot .desc { font-size: 14px; color: var(--ink-2); }
+
+  /* ---- Generic icon card grid ------------------------------------------- */
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--stone-100);
+    border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm);
+  }
+  .card .thumb {
+    aspect-ratio: 1 / 1; border-radius: var(--radius-md);
+    background: linear-gradient(158deg, var(--sprout), var(--sprout-deep));
+    display: grid; place-items: center; margin-bottom: 14px; position: relative;
+  }
+  .card .thumb .ic { width: 72%; height: 72%; }
+  .card .name { font-family: var(--font-display); font-weight: 600; font-size: 17px; color: var(--ink); }
+  .card .covers { font-size: 13px; color: var(--ink-3); margin-top: 3px; line-height: 1.45; }
+  .tag {
+    position: absolute; top: 10px; right: 10px; font-family: var(--font-mono);
+    font-size: 10.5px; letter-spacing: .02em; padding: 2px 7px; border-radius: var(--radius-pill);
+  }
+  .tag.new { background: var(--sun-soft); color: var(--sun-deep); }
+  .tag.set { background: var(--card); color: var(--ink-3); border: 1px solid var(--stone-200); }
+
+  /* ---- Variant proof rows ------------------------------------------------ */
+  .variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .vcard {
+    background: var(--card); border: 1px solid var(--stone-100);
+    border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+  }
+  .vcard .thumb {
+    aspect-ratio: 5 / 4;
+    background: linear-gradient(158deg, var(--sprout), var(--sprout-deep));
+    display: grid; place-items: center;
+  }
+  .vcard .thumb .ic { width: 58%; height: 58%; }
+  .vcard .meta { padding: 16px 18px 18px; }
+  .vcard .name { font-family: var(--font-display); font-weight: 600; font-size: 17px; }
+  .vcard .recipe { margin-top: 12px; display: grid; gap: 6px; }
+  .vcard .rrow { display: flex; align-items: center; gap: 9px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+  .vcard .rrow .sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(30,42,34,.12); flex: none; }
+  .vcard .rrow .checker {
+    background-image: linear-gradient(45deg, #dcd7c8 25%, transparent 25%, transparent 75%, #dcd7c8 75%),
+                      linear-gradient(45deg, #dcd7c8 25%, transparent 25%, transparent 75%, #dcd7c8 75%);
+    background-size: 8px 8px; background-position: 0 0, 4px 4px; background-color: #fff;
+  }
+
+  .callout {
+    margin-top: 28px; background: var(--sprout); border: 1px solid var(--sprout-deep);
+    border-radius: var(--radius-md); padding: 18px 22px; display: flex; gap: 12px; align-items: baseline;
+  }
+  .callout .k { font-family: var(--font-display); font-weight: 700; color: var(--canopy); font-size: 18px; flex: none; }
+  .callout p { margin: 0; color: var(--ink-2); font-size: 15px; }
+
+  /* two-up bloom row */
+  .twoup { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 560px; }
+
+  /* bloom palette token row */
+  .pal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 14px; margin-top: 8px; }
+  .pal .tok { text-align: center; }
+  .pal .tok .chip { height: 56px; border-radius: var(--radius-md); border: 1px solid rgba(30,42,34,.10); box-shadow: var(--shadow-xs); }
+  .pal .tok .tn { font-family: var(--font-display); font-weight: 600; font-size: 13.5px; margin-top: 8px; }
+  .pal .tok .tc { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+
+  /* compact flower-head row */
+  .heads { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 8px; }
+  .heads .hc { background: var(--card); border: 1px solid var(--stone-100); border-radius: var(--radius-md); padding: 12px 8px 10px; text-align: center; box-shadow: var(--shadow-xs); }
+  .heads .hc .ic { width: 52px; height: 52px; margin: 0 auto 6px; }
+  .heads .hc .hn { font-size: 11.5px; color: var(--ink-3); font-family: var(--font-mono); }
+
+  @media (max-width: 860px) {
+    .pal { grid-template-columns: repeat(4, 1fr); }
+    .heads { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* variegation pattern row */
+  .veg4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .vcard .vdesc { font-size: 13px; color: var(--ink-3); margin-top: 5px; line-height: 1.5; min-height: 38px; }
+  .vcard .recipe .rrow code, .vcard .recipe .rrow .pat { font-family: var(--font-mono); }
+
+  /* ---- Code block -------------------------------------------------------- */
+  pre {
+    margin: 0; background: var(--moss); color: var(--ink-on-dark);
+    border-radius: var(--radius-md); padding: 22px 24px; overflow-x: auto;
+    font-family: var(--font-mono); font-size: 13px; line-height: 1.7;
+  }
+  pre .c { color: #8FB89B; }       /* comment */
+  pre .k { color: #A9C2A1; }       /* key */
+  pre .s { color: #E0A050; }       /* string / value */
+  .codewrap { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+
+  /* ---- Roadmap ----------------------------------------------------------- */
+  .road { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .phase { border: 1px solid var(--stone-200); border-radius: var(--radius-lg); padding: 24px; background: var(--card); }
+  .phase h3 { margin: 0 0 6px; }
+  .phase .big { font-family: var(--font-mono); font-size: 13px; color: var(--fern); }
+  .phase ul { margin: 14px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 14.5px; line-height: 1.7; }
+
+  h2.sec { margin: 0 0 14px; }
+  .foot { padding: 56px 0 96px; color: var(--ink-3); font-size: 13px; font-family: var(--font-mono); }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .variants { grid-template-columns: 1fr; }
+    .anatomy { grid-template-columns: 1fr; gap: 32px; }
+    .anatomy-thumb { width: 100%; }
+    .codewrap { grid-template-columns: 1fr; }
+    .road { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 46px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ======================================================= HERO -->
+<header class="wrap hero">
+  <div class="eyebrow">
+    <span class="num">Icon system</span>
+    <span class="rt-eyebrow">Shipping · flowering on</span>
+  </div>
+  <h1 class="rt-display">One shape,<br>many plants.</h1>
+  <p class="rt-lead lead-max">Every Rootly plant icon is built from a small library of <strong>base silhouettes</strong>. A specific plant is just that base wearing a <strong>skin</strong> — a set of CSS variable slots for color, variegation, and blooms. Draw ~14 shapes once; reach 50+ plants by reskinning. The recipe is pure data, so it feeds straight into the app.</p>
+
+  <div class="hero-row">
+    <div class="hero-thumb"><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 V26" stroke-width="2.4"/>
+    <path class="leaf-1" d="M32 30 C20 30 13 22 13 12 C25 12 31 19 32 30 Z"/>
+    <path class="vein" d="M19 16 L24 21 M16 22 L22 24" stroke-width="1.6"/>
+    <path class="leaf-2" d="M32 30 C44 30 51 22 51 12 C39 12 33 19 32 30 Z"/>
+    <path class="vein" d="M45 16 L40 21 M48 22 L42 24" stroke-width="1.6"/>
+    <path class="leaf-3" d="M32 28 C32 16 36 7 32 3 C28 7 32 16 32 28 Z"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+    <div class="hero-thumb"><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-3" d="M22 47 C20 37 19 27 21 16 C24 27 25 37 25 47 Z"/>
+    <path class="leaf-1" d="M28 47 C25 34 24 20 27 6 C30 19 31 33 31 47 Z"/>
+    <path class="leaf-2" d="M34 47 C33 33 34 19 38 7 C40 21 39 35 37 47 Z"/>
+    <path d="M27 7 L27 11 M38 8 L38 12" stroke="#E0A050" stroke-width="1.4" stroke-linecap="round"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+    <div class="hero-thumb"><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M32 46 C24 36 16 27 12 17 C19 25 28 35 33 45 Z"/>
+    <path class="leaf-3" d="M32 46 C40 36 48 27 52 17 C45 25 36 35 31 45 Z"/>
+    <path class="leaf-2" d="M32 46 C27 35 23 24 22 13 C27 24 31 35 33 46 Z"/>
+    <path class="leaf-2" d="M32 46 C37 35 41 24 42 13 C37 24 33 35 31 46 Z"/>
+    <path class="leaf-3" d="M32 46 C30 34 30 20 32 9 C34 20 34 34 33 46 Z"/>
+    <path class="vein" d="M32 45 C28 35 21 26 14 18" stroke-width="1.1"/>
+    <path class="vein" d="M32 45 C36 35 43 26 50 18" stroke-width="1.1"/>
+    <path class="vein" d="M32 45 L32 11" stroke-width="1.1"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+    <div class="hero-thumb"><div class="ic" style="--variegation:#EDF3E6;"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M31 44 C23 36 15 32 8 32 C15 30 24 34 31 43 Z"/>
+    <path class="leaf-1" d="M33 44 C41 36 49 32 56 32 C49 30 40 34 33 43 Z"/>
+    <path class="leaf-2" d="M31 44 C22 42 13 43 7 49 C14 43 23 43 31 45 Z"/>
+    <path class="leaf-2" d="M33 44 C42 42 51 43 57 49 C50 43 41 43 33 45 Z"/>
+    <path class="leaf-2" d="M31 44 C30 33 30 24 31 17 C32 25 32 33 32 44 Z"/>
+    <path class="leaf-3" d="M33 44 C34 34 35 26 36 20 C36 28 35 35 33 44 Z"/>
+    <path class="leaf-3" d="M32 44 C30.5 34 31 24 32 18 C33 25 33.5 34 32.5 44 Z"/>
+    <path class="vein-veg" d="M31.5 43 C31 33 31 24 31.5 18" stroke-width="1.3"/>
+    <path class="vein-veg" d="M33.5 43 C34.5 34 35 27 35.6 21" stroke-width="1.1"/>
+    <path class="vein-veg" d="M30.5 43 C29 34 29.5 26 30.5 20" stroke-width="1.1"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+    <div class="hero-thumb"><div class="ic" style="--bloom:#E0A050;"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M32 44 L20 34 Q28 33 32 44 Z"/>
+    <path class="leaf-1" d="M32 44 L44 34 Q36 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L26 30 Q32 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L38 30 Q32 33 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L29 26 Q34 30 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L35 26 Q30 30 32 44 Z"/>
+    <circle class="leaf-2" cx="32" cy="41" r="2.4"/>
+    <path class="bloom-stroke" d="M31 31 C24 27 20 22 18 16" stroke-width="1.6"/>
+    <path class="bloom-stroke" d="M33 31 C40 27 44 22 46 16" stroke-width="1.6"/>
+    <circle class="bloom" cx="18" cy="15" r="2.2"/>
+    <circle class="bloom" cx="46" cy="15" r="2.2"/>
+    <circle class="bloom" cx="21" cy="19" r="1.5"/>
+    <circle class="bloom" cx="43" cy="19" r="1.5"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+  </div>
+</header>
+
+<!-- ======================================================= 01 SLOTS -->
+<section class="wrap">
+  <div class="eyebrow"><span class="num">01</span><span class="rt-eyebrow">The slot system</span></div>
+  <h2 class="rt-h2 sec">A base is bound to named slots</h2>
+  <p class="rt-lead lead-max" style="margin-bottom:48px;">Each fillable region of a silhouette points at a CSS variable instead of a baked-in hex. Override the variables and the same paths become a different plant — no new geometry, no separate file.</p>
+
+  <div class="anatomy">
+    <div class="anatomy-thumb"><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 V26" stroke-width="2.4"/>
+    <path class="leaf-1" d="M32 30 C20 30 13 22 13 12 C25 12 31 19 32 30 Z"/>
+    <path class="vein" d="M19 16 L24 21 M16 22 L22 24" stroke-width="1.6"/>
+    <path class="leaf-2" d="M32 30 C44 30 51 22 51 12 C39 12 33 19 32 30 Z"/>
+    <path class="vein" d="M45 16 L40 21 M48 22 L42 24" stroke-width="1.6"/>
+    <path class="leaf-3" d="M32 28 C32 16 36 7 32 3 C28 7 32 16 32 28 Z"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+    <div class="slot-list">
+      <div class="slot"><span class="swatch" style="background:#256B45"></span><code>--leaf-1</code><span class="desc">Deep / back leaves</span></div>
+      <div class="slot"><span class="swatch" style="background:#3A7D55"></span><code>--leaf-2</code><span class="desc">Mid leaves</span></div>
+      <div class="slot"><span class="swatch" style="background:#5AA277"></span><code>--leaf-3</code><span class="desc">Light / front leaves</span></div>
+      <div class="slot"><span class="swatch" style="background:#3A7D55"></span><code>--stem</code><span class="desc">Stems &amp; petioles</span></div>
+      <div class="slot"><span class="swatch" style="background:#E9F1E4"></span><code>--vein</code><span class="desc">Structural highlights</span></div>
+      <div class="slot"><span class="swatch checker"></span><code>--variegation</code><span class="desc">Optional marking — default transparent</span></div>
+      <div class="slot"><span class="swatch checker"></span><code>--bloom</code><span class="desc">Optional flower — default transparent</span></div>
+      <div class="slot"><span class="swatch" style="background:#C98A5E"></span><code>--pot-body</code><span class="desc">Clay pot body</span></div>
+      <div class="slot"><span class="swatch" style="background:#B97A4F"></span><code>--pot-rim</code><span class="desc">Clay pot rim</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= 02 BASE LIBRARY -->
+<section class="wrap">
+  <div class="eyebrow"><span class="num">02</span><span class="rt-eyebrow">Base shape library</span></div>
+  <h2 class="rt-h2 sec">~14 silhouettes cover the field</h2>
+  <p class="rt-lead lead-max" style="margin-bottom:40px;">At icon scale most houseplants collapse into a handful of distinct shapes. Here are all 14 — the original 5, plus 9 new ones spanning every archetype. Each base, shown in the default palette, is the parent of several real plants.</p>
+
+  <div class="grid">
+    <div class="card"><div class="thumb"><span class="tag set">In set</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 V26" stroke-width="2.4"/>
+    <path class="leaf-1" d="M32 30 C20 30 13 22 13 12 C25 12 31 19 32 30 Z"/>
+    <path class="vein" d="M19 16 L24 21 M16 22 L22 24" stroke-width="1.6"/>
+    <path class="leaf-2" d="M32 30 C44 30 51 22 51 12 C39 12 33 19 32 30 Z"/>
+    <path class="vein" d="M45 16 L40 21 M48 22 L42 24" stroke-width="1.6"/>
+    <path class="leaf-3" d="M32 28 C32 16 36 7 32 3 C28 7 32 16 32 28 Z"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Fenestrated tropical</div><div class="covers">Monstera · split-leaf philodendron · alocasia</div></div>
+    <div class="card"><div class="thumb"><span class="tag set">In set</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 V20" stroke-width="2.4"/>
+    <ellipse class="leaf-2" cx="22" cy="16" rx="8" ry="11" transform="rotate(-18 22 16)"/>
+    <ellipse class="leaf-3" cx="43" cy="18" rx="7.5" ry="10" transform="rotate(16 43 18)"/>
+    <ellipse class="leaf-1" cx="32" cy="9" rx="7.5" ry="10.5"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Single-trunk tree</div><div class="covers">Fiddle-leaf fig · rubber plant · money tree</div></div>
+    <div class="card"><div class="thumb"><span class="tag set">In set</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-3" d="M22 47 C20 37 19 27 21 16 C24 27 25 37 25 47 Z"/>
+    <path class="leaf-1" d="M28 47 C25 34 24 20 27 6 C30 19 31 33 31 47 Z"/>
+    <path class="leaf-2" d="M34 47 C33 33 34 19 38 7 C40 21 39 35 37 47 Z"/>
+    <path d="M27 7 L27 11 M38 8 L38 12" stroke="#E0A050" stroke-width="1.4" stroke-linecap="round"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Upright sword</div><div class="covers">Snake plant · ZZ · dracaena</div></div>
+    <div class="card"><div class="thumb"><span class="tag set">In set</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="pv0">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g class="variegation" clip-path="url(#pv0)">
+      <ellipse cx="24" cy="20" rx="2.3" ry="2.7"/>
+      <circle cx="28.5" cy="24" r="1.3"/>
+      <ellipse cx="41" cy="20" rx="2.1" ry="2.5"/>
+      <circle cx="36.5" cy="24" r="1.2"/>
+      <ellipse cx="47" cy="42" rx="2.3" ry="2.7"/>
+      <circle cx="42" cy="45" r="1.3"/>
+      <ellipse cx="21" cy="49" rx="2.3" ry="2.7"/>
+      <circle cx="25.5" cy="52" r="1.2"/>
+      <circle cx="32" cy="18" r="1.1"/>
+      <circle cx="32" cy="46" r="1.1"/>
+    </g></svg></div></div><div class="name">Trailing vine</div><div class="covers">Pothos · heartleaf philo · ivy</div></div>
+    <div class="card"><div class="thumb"><span class="tag set">In set</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M32 44 L20 34 Q28 33 32 44 Z"/>
+    <path class="leaf-1" d="M32 44 L44 34 Q36 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L26 30 Q32 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L38 30 Q32 33 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L29 26 Q34 30 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L35 26 Q30 30 32 44 Z"/>
+    <circle class="leaf-2" cx="32" cy="41" r="2.4"/>
+    <path class="bloom-stroke" d="M31 31 C24 27 20 22 18 16" stroke-width="1.6"/>
+    <path class="bloom-stroke" d="M33 31 C40 27 44 22 46 16" stroke-width="1.6"/>
+    <circle class="bloom" cx="18" cy="15" r="2.2"/>
+    <circle class="bloom" cx="46" cy="15" r="2.2"/>
+    <circle class="bloom" cx="21" cy="19" r="1.5"/>
+    <circle class="bloom" cx="43" cy="19" r="1.5"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Rosette succulent</div><div class="covers">Echeveria · aloe · haworthia</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M31 44 C23 36 15 32 8 32 C15 30 24 34 31 43 Z"/>
+    <path class="leaf-1" d="M33 44 C41 36 49 32 56 32 C49 30 40 34 33 43 Z"/>
+    <path class="leaf-2" d="M31 44 C22 42 13 43 7 49 C14 43 23 43 31 45 Z"/>
+    <path class="leaf-2" d="M33 44 C42 42 51 43 57 49 C50 43 41 43 33 45 Z"/>
+    <path class="leaf-2" d="M31 44 C30 33 30 24 31 17 C32 25 32 33 32 44 Z"/>
+    <path class="leaf-3" d="M33 44 C34 34 35 26 36 20 C36 28 35 35 33 44 Z"/>
+    <path class="leaf-3" d="M32 44 C30.5 34 31 24 32 18 C33 25 33.5 34 32.5 44 Z"/>
+    <path class="vein-veg" d="M31.5 43 C31 33 31 24 31.5 18" stroke-width="1.3"/>
+    <path class="vein-veg" d="M33.5 43 C34.5 34 35 27 35.6 21" stroke-width="1.1"/>
+    <path class="vein-veg" d="M30.5 43 C29 34 29.5 26 30.5 20" stroke-width="1.1"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Strappy arching</div><div class="covers">Spider plant · airplane plant</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M32 46 C24 36 16 27 12 17 C19 25 28 35 33 45 Z"/>
+    <path class="leaf-3" d="M32 46 C40 36 48 27 52 17 C45 25 36 35 31 45 Z"/>
+    <path class="leaf-2" d="M32 46 C27 35 23 24 22 13 C27 24 31 35 33 46 Z"/>
+    <path class="leaf-2" d="M32 46 C37 35 41 24 42 13 C37 24 33 35 31 46 Z"/>
+    <path class="leaf-3" d="M32 46 C30 34 30 20 32 9 C34 20 34 34 33 46 Z"/>
+    <path class="vein" d="M32 45 C28 35 21 26 14 18" stroke-width="1.1"/>
+    <path class="vein" d="M32 45 C36 35 43 26 50 18" stroke-width="1.1"/>
+    <path class="vein" d="M32 45 L32 11" stroke-width="1.1"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Palm / frond</div><div class="covers">Parlor palm · areca · kentia</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M31 44 C20 41 10 43 5 50 C12 43 22 42 31 43 Z"/>
+    <path class="leaf-1" d="M33 44 C44 41 54 43 59 50 C52 43 42 42 33 43 Z"/>
+    <path class="leaf-2" d="M31 44 C22 38 13 35 7 35 C14 36 24 40 31 44 Z"/>
+    <path class="leaf-2" d="M33 44 C42 38 51 35 57 35 C50 36 40 40 33 44 Z"/>
+    <path class="leaf-2" d="M31 44 C27 35 24 27 24 19 C28 27 31 35 32 44 Z"/>
+    <path class="leaf-3" d="M33 44 C37 35 40 27 40 19 C36 27 33 35 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 C30 33 31 22 32 14 C33 22 34 33 33 44 Z"/>
+    <path class="vein" d="M32 42 L32 16 M31 38 C28 36 25 35 22 35 M33 38 C36 36 39 35 42 35 M30 33 C27 32 24 32 22 30 M34 33 C37 32 40 32 42 30" stroke-width="0.8"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Feathery fern</div><div class="covers">Boston fern · maidenhair</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M24 40 C17 40 16 35 16 30 C16 27.5 19 27.5 19 30 C19 34 21 35 24 36 Z"/>
+    <path class="leaf-2" d="M24 47 C23 26 26 14 32 13 C38 14 41 26 40 47 Z"/>
+    <path class="vein" d="M28 18 V44 M32 15 V45 M36 18 V44" stroke-width="1.2"/>
+    <g class="bloom">
+      <ellipse cx="32" cy="10.5" rx="2" ry="3.2"/>
+      <ellipse cx="28.8" cy="12" rx="3" ry="1.7" transform="rotate(-38 28.8 12)"/>
+      <ellipse cx="35.2" cy="12" rx="3" ry="1.7" transform="rotate(38 35.2 12)"/>
+    </g><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Cactus</div><div class="covers">Barrel · saguaro · prickly pear</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 C31 38 27 30 23 22" stroke-width="2.2"/>
+    <path class="stem" d="M32 46 C33 38 37 30 41 22" stroke-width="2.2"/>
+    <path class="stem" d="M32 46 L32 16" stroke-width="2.2"/>
+    <ellipse class="leaf-1" cx="21" cy="17" rx="7.5" ry="12.5" transform="rotate(-24 21 17)"/>
+    <ellipse class="leaf-3" cx="43" cy="17" rx="7.5" ry="12.5" transform="rotate(24 43 17)"/>
+    <ellipse class="leaf-2" cx="32" cy="12" rx="7" ry="13"/>
+    <path class="vein" d="M21 5 L21 29" transform="rotate(-24 21 17)" stroke-width="1.1"/>
+    <path class="vein" d="M43 5 L43 29" transform="rotate(24 43 17)" stroke-width="1.1"/>
+    <path class="vein" d="M32 -1 L32 25" stroke-width="1.1"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Big paddle</div><div class="covers">Bird of paradise · banana</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M30 46 C20 39 17 27 22 15 C27 21 30 33 31 46 Z"/>
+    <path class="leaf-3" d="M34 46 C44 39 47 27 42 15 C37 21 34 33 33 46 Z"/>
+    <path class="leaf-2" d="M32 46 C27 35 28 20 32 10 C36 20 37 35 32 46 Z"/>
+    <path class="vein" d="M30 44 C24 37 21 27 24 18" stroke-width="1"/>
+    <path class="vein" d="M34 44 C40 37 43 27 40 18" stroke-width="1"/>
+    <path class="vein" d="M32 44 C31 33 31 21 32 12" stroke-width="1.2"/>
+    <path class="vein" d="M32 20 l-3.5 1.5 M32 26 l-4 1.5 M32 32 l-4 1.6 M32 20 l3.5 1.5 M32 26 l4 1.5 M32 32 l4 1.6" stroke-width="1"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Patterned broadleaf</div><div class="covers">Calathea · prayer plant · maranta</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 L31 34" stroke-width="3"/>
+    <path class="stem" d="M31 37 C28 35 25 35 23 32" stroke-width="2.4"/>
+    <path class="stem" d="M31 37 C34 35 37 35 39 32" stroke-width="2.4"/>
+    <path class="stem" d="M31 34 C31 31 31 29 31 26" stroke-width="2.4"/>
+    <ellipse class="leaf-1" cx="22" cy="29" rx="4" ry="5.2" transform="rotate(-18 22 29)"/>
+    <ellipse class="leaf-2" cx="27" cy="26" rx="3.8" ry="5" transform="rotate(-8 27 26)"/>
+    <ellipse class="leaf-3" cx="40" cy="29" rx="4" ry="5.2" transform="rotate(18 40 29)"/>
+    <ellipse class="leaf-2" cx="35" cy="26" rx="3.8" ry="5" transform="rotate(8 35 26)"/>
+    <ellipse class="leaf-1" cx="27" cy="20" rx="3.8" ry="5" transform="rotate(-10 27 20)"/>
+    <ellipse class="leaf-3" cx="35" cy="19" rx="3.8" ry="5" transform="rotate(10 35 19)"/>
+    <ellipse class="leaf-2" cx="31" cy="15" rx="3.8" ry="5"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Paddle succulent</div><div class="covers">Jade · kalanchoe · portulacaria</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <ellipse class="leaf-2" cx="31" cy="35" rx="9" ry="11"/>
+    <ellipse class="leaf-1" cx="22" cy="23" rx="6" ry="7.5" transform="rotate(-22 22 23)"/>
+    <ellipse class="leaf-3" cx="40" cy="22" rx="5.5" ry="7" transform="rotate(24 40 22)"/>
+    <path class="vein" d="M31 28 v0 M28 33 v0 M35 33 v0 M31 41 v0 M20 24 v0 M24 21 v0 M41 24 v0 M39 19 v0" stroke-width="1.8" stroke-linecap="round"/>
+    <g class="bloom">
+      <ellipse cx="22" cy="14.5" rx="1.6" ry="2.6"/>
+      <ellipse cx="19.6" cy="16" rx="2.4" ry="1.4" transform="rotate(-35 19.6 16)"/>
+      <ellipse cx="24.4" cy="16" rx="2.4" ry="1.4" transform="rotate(35 24.4 16)"/>
+    </g><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Cactus pad</div><div class="covers">Prickly pear · bunny ear</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M30 42 C26 38 23 34 22 29" stroke-width="1.3"/>
+    <path class="stem" d="M34 42 C38 38 41 34 42 29" stroke-width="1.3"/>
+    <path class="stem" d="M32 42 C32 36 32 31 32 27" stroke-width="1.3"/>
+    <circle class="leaf-2" cx="22" cy="28" r="2.5"/>
+    <circle class="leaf-1" cx="25" cy="33" r="2.5"/>
+    <circle class="leaf-3" cx="22" cy="38" r="2.5"/>
+    <circle class="leaf-2" cx="32" cy="26" r="2.5"/>
+    <circle class="leaf-3" cx="32" cy="31" r="2.5"/>
+    <circle class="leaf-1" cx="32" cy="36" r="2.5"/>
+    <circle class="leaf-2" cx="42" cy="28" r="2.5"/>
+    <circle class="leaf-1" cx="39" cy="33" r="2.5"/>
+    <circle class="leaf-3" cx="42" cy="38" r="2.5"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="stem" d="M23 43 C19 47 16 51 16 56" stroke-width="1.3"/>
+    <path class="stem" d="M41 43 C45 47 48 51 48 56" stroke-width="1.3"/>
+    <circle class="leaf-3" cx="16" cy="50" r="2.3"/>
+    <circle class="leaf-1" cx="16" cy="55" r="2.3"/>
+    <circle class="leaf-2" cx="48" cy="50" r="2.3"/>
+    <circle class="leaf-3" cx="48" cy="55" r="2.3"/></svg></div></div><div class="name">Beaded strand</div><div class="covers">String of pearls · string of hearts</div></div>
+  </div>
+</section>
+
+<!-- ======================================================= 03 RESKIN -->
+<section class="wrap">
+  <div class="eyebrow"><span class="num">03</span><span class="rt-eyebrow">Reskin a base</span></div>
+  <h2 class="rt-h2 sec">Palette + variegation, one base</h2>
+  <p class="rt-lead lead-max" style="margin-bottom:40px;">Three real pothos cultivars from the single <code style="font-family:var(--font-mono);font-size:.9em;">trailing-vine</code> base. The geometry is byte-for-byte identical across all three — only the slot values differ.</p>
+
+  <div class="variants">
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--leaf-1:#3E7D2E;--leaf-2:#5C9A33;--leaf-3:#7DB23E;--stem:#5C9A33;--variegation:#E7C463;"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="pv1">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g class="variegation" clip-path="url(#pv1)">
+      <ellipse cx="24" cy="20" rx="2.3" ry="2.7"/>
+      <circle cx="28.5" cy="24" r="1.3"/>
+      <ellipse cx="41" cy="20" rx="2.1" ry="2.5"/>
+      <circle cx="36.5" cy="24" r="1.2"/>
+      <ellipse cx="47" cy="42" rx="2.3" ry="2.7"/>
+      <circle cx="42" cy="45" r="1.3"/>
+      <ellipse cx="21" cy="49" rx="2.3" ry="2.7"/>
+      <circle cx="25.5" cy="52" r="1.2"/>
+      <circle cx="32" cy="18" r="1.1"/>
+      <circle cx="32" cy="46" r="1.1"/>
+    </g></svg></div></div>
+      <div class="meta">
+        <div class="name">Golden pothos</div>
+        <div class="recipe">
+          <div class="rrow"><span class="sw" style="background:#5C9A33"></span>--leaf-2: #5C9A33</div>
+          <div class="rrow"><span class="sw" style="background:#E7C463"></span>--variegation: #E7C463</div>
+        </div>
+      </div>
+    </div>
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--leaf-1:#2E6B43;--leaf-2:#3F8557;--leaf-3:#5AA277;--stem:#3F8557;--variegation:#EEF3E6;"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="pv2">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g class="variegation" clip-path="url(#pv2)">
+      <path d="M32 30 C25 28 20 23 19 15 C24 16 27 19 27 30 Z"/>
+      <ellipse cx="48" cy="44" rx="5.5" ry="5"/>
+      <ellipse cx="18" cy="52" rx="5" ry="5.5"/>
+      <ellipse cx="43" cy="18" rx="3.6" ry="4.6"/>
+    </g></svg></div></div>
+      <div class="meta">
+        <div class="name">Marble queen</div>
+        <div class="recipe">
+          <div class="rrow"><span class="sw" style="background:#3F8557"></span>--leaf-2: #3F8557</div>
+          <div class="rrow"><span class="sw" style="background:#EEF3E6"></span>--variegation: #EEF3E6</div>
+        </div>
+      </div>
+    </div>
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--leaf-1:#5BA12E;--leaf-2:#79C13C;--leaf-3:#9AD64F;--stem:#79C13C;"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="pv3">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g class="variegation" clip-path="url(#pv3)">
+      <ellipse cx="24" cy="20" rx="2.3" ry="2.7"/>
+      <circle cx="28.5" cy="24" r="1.3"/>
+      <ellipse cx="41" cy="20" rx="2.1" ry="2.5"/>
+      <circle cx="36.5" cy="24" r="1.2"/>
+      <ellipse cx="47" cy="42" rx="2.3" ry="2.7"/>
+      <circle cx="42" cy="45" r="1.3"/>
+      <ellipse cx="21" cy="49" rx="2.3" ry="2.7"/>
+      <circle cx="25.5" cy="52" r="1.2"/>
+      <circle cx="32" cy="18" r="1.1"/>
+      <circle cx="32" cy="46" r="1.1"/>
+    </g></svg></div></div>
+      <div class="meta">
+        <div class="name">Neon pothos</div>
+        <div class="recipe">
+          <div class="rrow"><span class="sw" style="background:#79C13C"></span>--leaf-2: #79C13C</div>
+          <div class="rrow"><span class="sw checker"></span>--variegation: none</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="k">Same paths.</span>
+    <p>Only the slots change. Variegation simply appears when <code style="font-family:var(--font-mono)">--variegation</code> goes from <code style="font-family:var(--font-mono)">transparent</code> to a color — no extra drawing, no extra file.</p>
+  </div>
+</section>
+
+<!-- ======================================================= 04 VARIEGATION -->
+<section class="wrap">
+  <div class="eyebrow"><span class="num">04</span><span class="rt-eyebrow">Variegation patterns</span></div>
+  <h2 class="rt-h2 sec">Four marking styles, one slot</h2>
+  <p class="rt-lead lead-max" style="margin-bottom:40px;">Variegation isn't one effect — it's a small named set. A recipe carries a <code style="font-family:var(--font-mono);font-size:.9em;">pattern</code> plus the <code style="font-family:var(--font-mono);font-size:.9em;">--variegation</code> color; every base ships all four overlays pre-clipped to its own leaves, so naming one is all it takes. Shown here on the trailing-vine base.</p>
+
+  <div class="veg4">
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--leaf-1:#2E6B43;--leaf-2:#3F8557;--leaf-3:#5AA277;--stem:#3F8557;--variegation:#EAF2E0;"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="vtA">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g class="variegation" clip-path="url(#vtA)">
+      <ellipse cx="24" cy="20" rx="2.3" ry="2.7"/>
+      <circle cx="28.5" cy="24" r="1.3"/>
+      <ellipse cx="41" cy="20" rx="2.1" ry="2.5"/>
+      <circle cx="36.5" cy="24" r="1.2"/>
+      <ellipse cx="47" cy="42" rx="2.3" ry="2.7"/>
+      <circle cx="42" cy="45" r="1.3"/>
+      <ellipse cx="21" cy="49" rx="2.3" ry="2.7"/>
+      <circle cx="25.5" cy="52" r="1.2"/>
+      <circle cx="32" cy="18" r="1.1"/>
+      <circle cx="32" cy="46" r="1.1"/>
+    </g></svg></div></div>
+      <div class="meta">
+        <div class="name">Speckle</div>
+        <div class="vdesc">Fine flecks scattered across the blade — golden pothos, dieffenbachia.</div>
+        <div class="recipe"><div class="rrow"><span class="sw" style="background:#EAF2E0"></span><span class="pat">pattern: "speckle"</span></div></div>
+      </div>
+    </div>
+
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--leaf-1:#2E6B43;--leaf-2:#3F8557;--leaf-3:#5AA277;--stem:#3F8557;--variegation:#EAF2E0;"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="vtB">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g class="variegation" clip-path="url(#vtB)">
+      <path d="M32 30 C25 28 20 23 19 15 C24 16 27 19 27 30 Z"/>
+      <ellipse cx="48" cy="44" rx="5.5" ry="5"/>
+      <ellipse cx="18" cy="52" rx="5" ry="5.5"/>
+      <ellipse cx="43" cy="18" rx="3.6" ry="4.6"/>
+    </g></svg></div></div>
+      <div class="meta">
+        <div class="name">Marble</div>
+        <div class="vdesc">Bold sectoral patches over half the leaf — marble queen, snow queen.</div>
+        <div class="recipe"><div class="rrow"><span class="sw" style="background:#EAF2E0"></span><span class="pat">pattern: "marble"</span></div></div>
+      </div>
+    </div>
+
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--leaf-1:#2E6B43;--leaf-2:#3F8557;--leaf-3:#5AA277;--stem:#3F8557;--variegation:#EAF2E0;"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="vtC">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g clip-path="url(#vtC)">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z" style="fill:none;stroke:var(--variegation);stroke-width:3.4"/>
+    </g></svg></div></div>
+      <div class="meta">
+        <div class="name">Margin</div>
+        <div class="vdesc">A pale band tracing the leaf edge — marginata, variegated hoya.</div>
+        <div class="recipe"><div class="rrow"><span class="sw" style="background:#EAF2E0"></span><span class="pat">pattern: "margin"</span></div></div>
+      </div>
+    </div>
+
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--leaf-1:#2E6B43;--leaf-2:#3F8557;--leaf-3:#5AA277;--stem:#3F8557;--variegation:#EAF2E0;"><svg viewBox="0 0 64 64" fill="none">
+    <defs><clipPath id="vtD">
+      <path d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+      <path d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+      <path d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+      <path d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    </clipPath></defs>
+    <path class="stem" d="M32 46 C32 38 30 33 33 28" stroke-width="2.2"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/>
+    <path class="leaf-2" d="M32 40 C22 40 16 46 14 56 C24 56 31 50 32 40 Z"/>
+    <path class="leaf-1" d="M33 34 C44 33 51 38 53 48 C43 49 35 44 33 34 Z"/>
+    <path class="leaf-1" d="M32 30 C24 28 19 22 19 14 C29 15 33 22 32 30 Z"/>
+    <path class="leaf-3" d="M33 30 C41 27 47 21 47 13 C37 15 33 22 33 30 Z"/>
+    <g clip-path="url(#vtD)">
+      <path d="M31 41 L18 52 M34 36 L49 45 M31 29 L21 17 M34 29 L44 16" style="fill:none;stroke:var(--variegation);stroke-width:1.9;stroke-linecap:round"/>
+    </g></svg></div></div>
+      <div class="meta">
+        <div class="name">Center</div>
+        <div class="vdesc">A stripe running down the midrib — calathea, stromanthe, aglaonema.</div>
+        <div class="recipe"><div class="rrow"><span class="sw" style="background:#EAF2E0"></span><span class="pat">pattern: "center"</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= 05 BLOOM -->
+<section class="wrap">
+  <div class="eyebrow"><span class="num">05</span><span class="rt-eyebrow">Flowering plants — switched on</span></div>
+  <h2 class="rt-h2 sec">The flowers are switched on</h2>
+  <p class="rt-lead lead-max" style="margin-bottom:40px;">Flowering plants now ship live. The simplest bloom is still a single <strong>Sun</strong> dot — perfect for an echeveria sending up a spike (below). For plants that carry identity in their shape, a small library of <strong>bloom-heads</strong> rides the same green bases: petals, center and accent slots, every hue pinned to the same lightness &amp; chroma band as Sun.</p>
+
+  <div class="twoup">
+    <div class="vcard">
+      <div class="thumb"><div class="ic"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M32 44 L20 34 Q28 33 32 44 Z"/>
+    <path class="leaf-1" d="M32 44 L44 34 Q36 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L26 30 Q32 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L38 30 Q32 33 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L29 26 Q34 30 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L35 26 Q30 30 32 44 Z"/>
+    <circle class="leaf-2" cx="32" cy="41" r="2.4"/>
+    <path class="bloom-stroke" d="M31 31 C24 27 20 22 18 16" stroke-width="1.6"/>
+    <path class="bloom-stroke" d="M33 31 C40 27 44 22 46 16" stroke-width="1.6"/>
+    <circle class="bloom" cx="18" cy="15" r="2.2"/>
+    <circle class="bloom" cx="46" cy="15" r="2.2"/>
+    <circle class="bloom" cx="21" cy="19" r="1.5"/>
+    <circle class="bloom" cx="43" cy="19" r="1.5"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+      <div class="meta"><div class="name">Echeveria — resting</div>
+        <div class="recipe"><div class="rrow"><span class="sw checker"></span>--bloom: transparent</div></div>
+      </div>
+    </div>
+    <div class="vcard">
+      <div class="thumb"><div class="ic" style="--bloom:#E0A050;"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M32 44 L20 34 Q28 33 32 44 Z"/>
+    <path class="leaf-1" d="M32 44 L44 34 Q36 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L26 30 Q32 33 32 44 Z"/>
+    <path class="leaf-2" d="M32 44 L38 30 Q32 33 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L29 26 Q34 30 32 44 Z"/>
+    <path class="leaf-3" d="M32 44 L35 26 Q30 30 32 44 Z"/>
+    <circle class="leaf-2" cx="32" cy="41" r="2.4"/>
+    <path class="bloom-stroke" d="M31 31 C24 27 20 22 18 16" stroke-width="1.6"/>
+    <path class="bloom-stroke" d="M33 31 C40 27 44 22 46 16" stroke-width="1.6"/>
+    <circle class="bloom" cx="18" cy="15" r="2.2"/>
+    <circle class="bloom" cx="46" cy="15" r="2.2"/>
+    <circle class="bloom" cx="21" cy="19" r="1.5"/>
+    <circle class="bloom" cx="43" cy="19" r="1.5"/><path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div>
+      <div class="meta"><div class="name">Echeveria — in bloom</div>
+        <div class="recipe"><div class="rrow"><span class="sw" style="background:#E0A050"></span>--bloom: var(--sun)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="rt-h4" style="margin:52px 0 4px;">Ten heads cover the flowering field</h3>
+  <p class="note rt-small" style="margin:0 0 22px;max-width:660px;">Same move as the 14 leaf bases: at icon scale flowers collapse into ten distinct silhouettes — radial, fleur, orchid-face, trumpet, umbel, spike, open-cup, rosette, bulb-cup and nodding bell. Shape carries the identity; color is the second cue. Each head is a slot-driven shape in the shared sprite — shown here in a neutral bloom so you read the form — reskinned by three bloom slots: <code style="font-family:var(--font-mono);font-size:.9em;">--bloom</code> for petals, <code style="font-family:var(--font-mono);font-size:.9em;">--bloom-center</code> for the disc / throat, <code style="font-family:var(--font-mono);font-size:.9em;">--bloom-2</code> for a beard / stamen accent.</p>
+  <div class="grid">
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#EDE6D6;--bloom-center:#E8A23C;"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <ellipse cx="32" cy="12.5" rx="2.4" ry="6.5"/>
+        <ellipse cx="36.75" cy="13.77" rx="2.4" ry="6.5" transform="rotate(30 36.75 13.77)"/>
+        <ellipse cx="40.23" cy="17.25" rx="2.4" ry="6.5" transform="rotate(60 40.23 17.25)"/>
+        <ellipse cx="41.5" cy="22" rx="2.4" ry="6.5" transform="rotate(90 41.5 22)"/>
+        <ellipse cx="40.23" cy="26.75" rx="2.4" ry="6.5" transform="rotate(120 40.23 26.75)"/>
+        <ellipse cx="36.75" cy="30.23" rx="2.4" ry="6.5" transform="rotate(150 36.75 30.23)"/>
+        <ellipse cx="32" cy="31.5" rx="2.4" ry="6.5"/>
+        <ellipse cx="27.25" cy="30.23" rx="2.4" ry="6.5" transform="rotate(30 27.25 30.23)"/>
+        <ellipse cx="23.77" cy="26.75" rx="2.4" ry="6.5" transform="rotate(60 23.77 26.75)"/>
+        <ellipse cx="22.5" cy="22" rx="2.4" ry="6.5" transform="rotate(90 22.5 22)"/>
+        <ellipse cx="23.77" cy="17.25" rx="2.4" ry="6.5" transform="rotate(120 23.77 17.25)"/>
+        <ellipse cx="27.25" cy="13.77" rx="2.4" ry="6.5" transform="rotate(150 27.25 13.77)"/>
+      </g>
+      <circle class="center" cx="32" cy="22" r="5.2"/></svg></div></div><div class="name">Daisy / radial</div><div class="covers">Daisy · gerbera · sunflower · cosmos · chamomile</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#9FB0C9;--bloom-2:#EAD24E;"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <ellipse cx="32" cy="13" rx="2.7" ry="6.2"/>
+        <ellipse cx="26.3" cy="15" rx="2.6" ry="6" transform="rotate(-24 26.3 15)"/>
+        <ellipse cx="37.7" cy="15" rx="2.6" ry="6" transform="rotate(24 37.7 15)"/>
+        <ellipse cx="32" cy="30" rx="3.3" ry="6.6"/>
+        <ellipse cx="24" cy="27" rx="3.2" ry="6.4" transform="rotate(-48 24 27)"/>
+        <ellipse cx="40" cy="27" rx="3.2" ry="6.4" transform="rotate(48 40 27)"/>
+      </g>
+      <g class="accent">
+        <ellipse cx="32" cy="27" rx="1.1" ry="3.2"/>
+        <ellipse cx="26.5" cy="26" rx="1" ry="2.8" transform="rotate(-40 26.5 26)"/>
+        <ellipse cx="37.5" cy="26" rx="1" ry="2.8" transform="rotate(40 37.5 26)"/>
+      </g></svg></div></div><div class="name">Iris / fleur</div><div class="covers">Iris · dutch iris · fleur-form</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#D9BFD0;--bloom-center:#B98CB0;--bloom-2:#E8A23C;"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <ellipse cx="32" cy="13" rx="3" ry="5"/>
+        <ellipse cx="22.5" cy="17.5" rx="2.9" ry="5" transform="rotate(-36 22.5 17.5)"/>
+        <ellipse cx="41.5" cy="17.5" rx="2.9" ry="5" transform="rotate(36 41.5 17.5)"/>
+        <ellipse cx="24" cy="26.5" rx="6.4" ry="5.4"/>
+        <ellipse cx="40" cy="26.5" rx="6.4" ry="5.4"/>
+      </g>
+      <ellipse class="center" cx="32" cy="25" rx="3.2" ry="3.8"/>
+      <g class="accent"><circle cx="30.4" cy="22.6" r="1"/><circle cx="33.6" cy="22.6" r="1"/></g></svg></div></div><div class="name">Orchid face</div><div class="covers">Phalaenopsis · moth orchid</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#E7D2B0;--bloom-center:#E8A23C;--bloom-2:#C9852F;"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <path d="M32 24 C27.5 14 29.5 6 32 5 C34.5 6 36.5 14 32 24 Z"/>
+        <path d="M32 24 C27.5 14 29.5 6 32 5 C34.5 6 36.5 14 32 24 Z" transform="rotate(60 32 24)"/>
+        <path d="M32 24 C27.5 14 29.5 6 32 5 C34.5 6 36.5 14 32 24 Z" transform="rotate(120 32 24)"/>
+        <path d="M32 24 C27.5 14 29.5 6 32 5 C34.5 6 36.5 14 32 24 Z" transform="rotate(180 32 24)"/>
+        <path d="M32 24 C27.5 14 29.5 6 32 5 C34.5 6 36.5 14 32 24 Z" transform="rotate(240 32 24)"/>
+        <path d="M32 24 C27.5 14 29.5 6 32 5 C34.5 6 36.5 14 32 24 Z" transform="rotate(300 32 24)"/>
+      </g>
+      <circle class="center" cx="32" cy="24" r="3.4"/>
+      <g class="accent-stroke" stroke-width="1.3">
+        <path d="M32 24 L28.5 19"/><path d="M32 24 L32 17.5"/><path d="M32 24 L35.5 19"/>
+      </g>
+      <g class="accent"><circle cx="28.2" cy="18.4" r="1.2"/><circle cx="32" cy="16.8" r="1.2"/><circle cx="35.8" cy="18.4" r="1.2"/></g></svg></div></div><div class="name">Lily / trumpet</div><div class="covers">Lily · amaryllis · hibiscus · tulip</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#C9C0D6;--bloom-center:#9C90B4;"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <circle cx="32" cy="12.5" r="2.7"/><circle cx="27.5" cy="14" r="2.7"/><circle cx="36.5" cy="14" r="2.7"/>
+        <circle cx="23.5" cy="18.5" r="2.7"/><circle cx="28.5" cy="18.5" r="2.7"/><circle cx="35.5" cy="18.5" r="2.7"/><circle cx="40.5" cy="18.5" r="2.7"/><circle cx="32" cy="18.5" r="2.7"/>
+        <circle cx="26" cy="23" r="2.7"/><circle cx="31" cy="23" r="2.7"/><circle cx="37" cy="23" r="2.7"/>
+        <circle cx="29" cy="27" r="2.6"/><circle cx="34.5" cy="27" r="2.6"/>
+      </g>
+      <g class="center">
+        <circle cx="32" cy="12.5" r="0.95"/><circle cx="27.5" cy="14" r="0.95"/><circle cx="36.5" cy="14" r="0.95"/>
+        <circle cx="23.5" cy="18.5" r="0.95"/><circle cx="28.5" cy="18.5" r="0.95"/><circle cx="35.5" cy="18.5" r="0.95"/><circle cx="40.5" cy="18.5" r="0.95"/><circle cx="32" cy="18.5" r="0.95"/>
+        <circle cx="26" cy="23" r="0.95"/><circle cx="31" cy="23" r="0.95"/><circle cx="37" cy="23" r="0.95"/>
+        <circle cx="29" cy="27" r="0.9"/><circle cx="34.5" cy="27" r="0.9"/>
+      </g></svg></div></div><div class="name">Cluster / umbel</div><div class="covers">Hydrangea · geranium · kalanchoe · lantana</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#B7A6CC;"><svg viewBox="0 0 64 64"><path class="stem" d="M32 33 V9" stroke-width="1.6"/>
+      <g class="petal">
+        <ellipse cx="32" cy="9.5" rx="2" ry="2.6"/>
+        <ellipse cx="29" cy="14" rx="2.3" ry="2.9"/><ellipse cx="35" cy="14" rx="2.3" ry="2.9"/>
+        <ellipse cx="28" cy="19" rx="2.6" ry="3.1"/><ellipse cx="36" cy="19" rx="2.6" ry="3.1"/>
+        <ellipse cx="28" cy="24" rx="2.7" ry="3.2"/><ellipse cx="36" cy="24" rx="2.7" ry="3.2"/>
+        <ellipse cx="29" cy="29" rx="2.6" ry="3.1"/><ellipse cx="35" cy="29" rx="2.6" ry="3.1"/>
+      </g></svg></div></div><div class="name">Spike / raceme</div><div class="covers">Lavender · snapdragon · hyacinth · salvia</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#D98C7A;--bloom-center:#3A2C22;--bloom-2:#3A2C22;"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <ellipse cx="32" cy="16.8" rx="5.4" ry="5"/>
+        <ellipse cx="38.2" cy="20.9" rx="5.4" ry="5"/>
+        <ellipse cx="35.6" cy="28.2" rx="5.4" ry="5"/>
+        <ellipse cx="28.4" cy="28.2" rx="5.4" ry="5"/>
+        <ellipse cx="25.8" cy="20.9" rx="5.4" ry="5"/>
+      </g>
+      <circle class="center" cx="32" cy="23" r="3.4"/>
+      <g class="accent"><circle cx="32" cy="19.4" r="0.85"/><circle cx="35.4" cy="22" r="0.85"/><circle cx="34.1" cy="25.8" r="0.85"/><circle cx="29.9" cy="25.8" r="0.85"/><circle cx="28.6" cy="22" r="0.85"/></g></svg></div></div><div class="name">Poppy / open cup</div><div class="covers">Poppy · anemone · open tulip</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:#D9A6B0;--bloom-2:#C98599;"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <ellipse cx="32" cy="13.5" rx="3.2" ry="4"/>
+        <ellipse cx="38" cy="15.7" rx="3.2" ry="4" transform="rotate(45 38 15.7)"/>
+        <ellipse cx="40.5" cy="22" rx="3.2" ry="4" transform="rotate(90 40.5 22)"/>
+        <ellipse cx="38" cy="28.3" rx="3.2" ry="4" transform="rotate(135 38 28.3)"/>
+        <ellipse cx="32" cy="30.5" rx="3.2" ry="4"/>
+        <ellipse cx="26" cy="28.3" rx="3.2" ry="4" transform="rotate(45 26 28.3)"/>
+        <ellipse cx="23.5" cy="22" rx="3.2" ry="4" transform="rotate(90 23.5 22)"/>
+        <ellipse cx="26" cy="15.7" rx="3.2" ry="4" transform="rotate(135 26 15.7)"/>
+      </g>
+      <g class="petal">
+        <ellipse cx="32" cy="18.4" rx="2.5" ry="3.1"/>
+        <ellipse cx="35.5" cy="20.8" rx="2.5" ry="3.1" transform="rotate(55 35.5 20.8)"/>
+        <ellipse cx="34.4" cy="25" rx="2.5" ry="3.1" transform="rotate(120 34.4 25)"/>
+        <ellipse cx="29.6" cy="25" rx="2.5" ry="3.1" transform="rotate(60 29.6 25)"/>
+        <ellipse cx="28.5" cy="20.8" rx="2.5" ry="3.1" transform="rotate(125 28.5 20.8)"/>
+      </g>
+      <circle class="petal" cx="32" cy="22" r="2.6"/>
+      <path class="accent-stroke" stroke-width="1" d="M30.6 22 a1.4 1.4 0 1 0 2.8 0"/></svg></div></div><div class="name">Rose / rosette</div><div class="covers">Rose · ranunculus · camellia · peony</div></div>
+    <div class="card"><div class="thumb"><div class="ic" style="--bloom:oklch(0.7 0.13 350);--bloom-2:oklch(0.57 0.14 350)"><svg viewBox="0 0 64 64">
+      <g class="petal">
+        <path d="M24 22 C24 31 27 35 32 35 C37 35 40 31 40 22 Z"/>
+        <path d="M28 22 C28 11 31 8 32 8 C33 8 36 11 36 22 Z"/>
+        <path d="M24 22 C23 14 25 11 28 13 C28 16 27 19 27 22 Z"/>
+        <path d="M40 22 C41 14 39 11 36 13 C36 16 37 19 37 22 Z"/>
+      </g>
+      <path class="accent-stroke" stroke-width="1.1" d="M29.5 13 C28.5 20 28.5 28 30.5 34"/>
+      <path class="accent-stroke" stroke-width="1.1" d="M34.5 13 C35.5 20 35.5 28 33.5 34"/></svg></div></div><div class="name">Tulip / bulb cup</div><div class="covers">Tulip · crocus · closed lily · gentian</div></div>
+    <div class="card"><div class="thumb"><span class="tag new">New</span><div class="ic" style="--bloom:#A6B2D0;--bloom-2:#7E8CB0;"><svg viewBox="0 0 64 64">
+      <path class="stem" d="M30 35 C28 27 29 17 37 11" stroke-width="1.6"/>
+      <ellipse class="petal" cx="37.6" cy="10.6" rx="1.5" ry="2.3" transform="rotate(30 37.6 10.6)"/>
+      <g class="petal">
+        <path d="M34 13 C32.2 16 32 20 32.6 21.2 C34.5 22.8 37.5 22.8 39.4 21.2 C40 20 39.8 16 38 13 Z" transform="rotate(18 36 13)"/>
+        <path d="M29 18 C27.2 21 27 25 27.6 26.2 C29.5 27.8 32.5 27.8 34.4 26.2 C35 25 34.8 21 33 18 Z" transform="rotate(-10 31 18)"/>
+      </g>
+      <g class="accent-stroke" stroke-width="1">
+        <path d="M33.2 21.6 C35 23 37 23 38.8 21.6" transform="rotate(18 36 13)"/>
+        <path d="M28.2 26.6 C30 28 32 28 33.8 26.6" transform="rotate(-10 31 18)"/>
+      </g></svg></div></div><div class="name">Nodding bell</div><div class="covers">Campanula · bluebell · snowdrop · fuchsia</div></div>
+  </div>
+
+  <h3 class="rt-h4" style="margin:52px 0 4px;">The bloom palette</h3>
+  <p class="note rt-small" style="margin:0 0 22px;">For plants that need real color, the bloom slots draw from a curated set — six hues at one tuned lightness &amp; chroma (just rotated), plus a warm cream. They sit beside Sun, never against it. Leaves stay green-locked.</p>
+  <div class="pal">
+    <div class="tok"><div class="chip" style="background:var(--sun)"></div><div class="tn">Amber</div><div class="tc">= Sun</div></div>
+    <div class="tok"><div class="chip" style="background:oklch(0.66 0.16 28)"></div><div class="tn">Coral</div><div class="tc">h 28</div></div>
+    <div class="tok"><div class="chip" style="background:oklch(0.66 0.16 358)"></div><div class="tn">Rose</div><div class="tc">h 358</div></div>
+    <div class="tok"><div class="chip" style="background:oklch(0.66 0.14 330)"></div><div class="tn">Magenta</div><div class="tc">h 330</div></div>
+    <div class="tok"><div class="chip" style="background:oklch(0.62 0.13 300)"></div><div class="tn">Lilac</div><div class="tc">h 300</div></div>
+    <div class="tok"><div class="chip" style="background:oklch(0.64 0.11 250)"></div><div class="tn">Sky</div><div class="tc">h 250</div></div>
+    <div class="tok"><div class="chip" style="background:#F4ECDA"></div><div class="tn">Cream</div><div class="tc">whites</div></div>
+  </div>
+
+  <h3 class="rt-h4" style="margin:52px 0 8px;">Assembled &amp; blooming</h3>
+  <p class="note rt-small" style="margin:0 0 24px;">Four flowering plants, live in the set — each a green base + a connecting stem + a bloom-head, pulling its color straight from the palette above.</p>
+  <div class="grid">
+    <div class="card"><div class="thumb"><span class="tag new">Blooming</span><div class="ic" style="--bloom:#F4ECDA;--bloom-center:#E8A23C;"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 C31 39 31 31 32 26" stroke-width="2.2"/>
+    <path class="leaf-2" d="M31 38 C26 36 22 37 20 40 C24 40 28 39 31 39 Z"/>
+    <path class="leaf-3" d="M33 34 C38 32 42 33 44 36 C40 36 36 35 33 35 Z"/>
+    <g transform="translate(32 20.5) scale(1.16) translate(-32 -19)">
+    <g class="petal">
+      <ellipse cx="32" cy="12.4" rx="1.8" ry="4.6"/>
+      <ellipse cx="35.3" cy="13.28" rx="1.8" ry="4.6" transform="rotate(30 35.3 13.28)"/>
+      <ellipse cx="37.72" cy="15.7" rx="1.8" ry="4.6" transform="rotate(60 37.72 15.7)"/>
+      <ellipse cx="38.6" cy="19" rx="1.8" ry="4.6" transform="rotate(90 38.6 19)"/>
+      <ellipse cx="37.72" cy="22.3" rx="1.8" ry="4.6" transform="rotate(120 37.72 22.3)"/>
+      <ellipse cx="35.3" cy="24.72" rx="1.8" ry="4.6" transform="rotate(150 35.3 24.72)"/>
+      <ellipse cx="32" cy="25.6" rx="1.8" ry="4.6"/>
+      <ellipse cx="28.7" cy="24.72" rx="1.8" ry="4.6" transform="rotate(30 28.7 24.72)"/>
+      <ellipse cx="26.28" cy="22.3" rx="1.8" ry="4.6" transform="rotate(60 26.28 22.3)"/>
+      <ellipse cx="25.4" cy="19" rx="1.8" ry="4.6" transform="rotate(90 25.4 19)"/>
+      <ellipse cx="26.28" cy="15.7" rx="1.8" ry="4.6" transform="rotate(120 26.28 15.7)"/>
+      <ellipse cx="28.7" cy="13.28" rx="1.8" ry="4.6" transform="rotate(150 28.7 13.28)"/>
+    </g>
+    <circle class="center" cx="32" cy="19" r="3.6"/>
+    </g>
+    <path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Shasta daisy</div><div class="covers">daisy head · cream + amber</div></div>
+
+    <div class="card"><div class="thumb"><span class="tag new">Blooming</span><div class="ic" style="--bloom:oklch(0.62 0.13 300);--bloom-2:#EAD24E;"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-3" d="M24 46 C22 37 21 27 23 17 C26 27 27 37 27 46 Z"/>
+    <path class="leaf-2" d="M40 46 C40 37 41 27 43 17 C44 27 43 37 41 46 Z"/>
+    <path class="leaf-1" d="M32 46 C31 36 31 25 32 15 C33 25 33 36 33 46 Z"/>
+    <path class="stem" d="M32 46 V28" stroke-width="2"/>
+    <g transform="translate(32 21) scale(0.92) translate(-32 -21)">
+    <g class="petal">
+      <ellipse cx="32" cy="13" rx="2.7" ry="6.2"/>
+      <ellipse cx="26.3" cy="15" rx="2.6" ry="6" transform="rotate(-24 26.3 15)"/>
+      <ellipse cx="37.7" cy="15" rx="2.6" ry="6" transform="rotate(24 37.7 15)"/>
+      <ellipse cx="32" cy="30" rx="3.3" ry="6.6"/>
+      <ellipse cx="24" cy="27" rx="3.2" ry="6.4" transform="rotate(-48 24 27)"/>
+      <ellipse cx="40" cy="27" rx="3.2" ry="6.4" transform="rotate(48 40 27)"/>
+    </g>
+    <g class="accent">
+      <ellipse cx="32" cy="27" rx="1.1" ry="3.2"/>
+      <ellipse cx="26.5" cy="26" rx="1" ry="2.8" transform="rotate(-40 26.5 26)"/>
+      <ellipse cx="37.5" cy="26" rx="1" ry="2.8" transform="rotate(40 37.5 26)"/>
+    </g>
+    </g>
+    <path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Iris</div><div class="covers">iris head · lilac + gold beard</div></div>
+
+    <div class="card"><div class="thumb"><span class="tag new">Blooming</span><div class="ic" style="--bloom:oklch(0.79 0.08 350);--bloom-center:oklch(0.64 0.15 350);--bloom-2:#E8A23C;"><svg viewBox="0 0 64 64" fill="none">
+    <path class="leaf-1" d="M31 45 C22 44 14 45 9 48 C16 45 24 45 31 46 Z"/>
+    <path class="leaf-1" d="M33 45 C42 44 50 45 55 48 C48 45 40 45 33 46 Z"/>
+    <path class="leaf-2" d="M31 46 C25 43 18 43 13 46 C19 44 26 44 31 47 Z"/>
+    <path class="stem" d="M30 46 C27 37 29 28 32 24" stroke-width="1.8"/>
+    <g transform="translate(32 22) scale(0.92) translate(-32 -22)">
+    <g class="petal">
+      <ellipse cx="32" cy="13" rx="3" ry="5"/>
+      <ellipse cx="22.5" cy="17.5" rx="2.9" ry="5" transform="rotate(-36 22.5 17.5)"/>
+      <ellipse cx="41.5" cy="17.5" rx="2.9" ry="5" transform="rotate(36 41.5 17.5)"/>
+      <ellipse cx="24" cy="26.5" rx="6.4" ry="5.4"/>
+      <ellipse cx="40" cy="26.5" rx="6.4" ry="5.4"/>
+    </g>
+    <ellipse class="center" cx="32" cy="25" rx="3.2" ry="3.8"/>
+    <g class="accent"><circle cx="30.4" cy="22.6" r="1"/><circle cx="33.6" cy="22.6" r="1"/></g>
+    </g>
+    <path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Moth orchid</div><div class="covers">orchid head · rose face</div></div>
+
+    <div class="card"><div class="thumb"><span class="tag new">Blooming</span><div class="ic" style="--bloom:oklch(0.64 0.16 22);--bloom-2:oklch(0.52 0.15 20);"><svg viewBox="0 0 64 64" fill="none">
+    <path class="stem" d="M32 46 V34" stroke-width="2.2"/>
+    <path class="leaf-2" d="M30 46 C25 37 23 27 25 18 C28 27 30 37 31 46 Z"/>
+    <path class="leaf-3" d="M34 46 C39 38 41 29 39 21 C36 29 34 38 33 46 Z"/>
+    <g class="petal">
+      <path d="M24 22 C24 31 27 35 32 35 C37 35 40 31 40 22 Z"/>
+      <path d="M28 22 C28 11 31 8 32 8 C33 8 36 11 36 22 Z"/>
+      <path d="M24 22 C23 14 25 11 28 13 C28 16 27 19 27 22 Z"/>
+      <path d="M40 22 C41 14 39 11 36 13 C36 16 37 19 37 22 Z"/>
+    </g>
+    <path class="accent-stroke" d="M29.5 13 C28.5 20 28.5 28 30.5 34" stroke-width="1.1"/>
+    <path class="accent-stroke" d="M34.5 13 C35.5 20 35.5 28 33.5 34" stroke-width="1.1"/>
+    <path class="pot-body" d="M19 45 H45 L42 60 Q41.6 62 39.5 62 H24.5 Q22.4 62 22 60 Z"/><path class="pot-rim" d="M17.5 43.5 H46.5 Q47.6 43.5 47.4 45 L47 47 Q46.8 48 45.5 48 H18.5 Q17.2 48 17 47 L16.6 45 Q16.4 43.5 17.5 43.5 Z"/></svg></div></div><div class="name">Tulip</div><div class="covers">tulip cup · coral</div></div>
+  </div>
+</section>
+
+<!-- ======================================================= 06 DATA -->
+<section class="wrap">
+  <div class="eyebrow"><span class="num">06</span><span class="rt-eyebrow">For the app</span></div>
+  <h2 class="rt-h2 sec">A plant icon is just data</h2>
+  <p class="rt-lead lead-max" style="margin-bottom:40px;">Because a skin is only variable values, every plant becomes a tiny record. It slots into the existing <code style="font-family:var(--font-mono);font-size:.9em;">Plant</code> model as one field, and the renderer maps it to slot overrides at runtime.</p>
+
+  <div class="codewrap">
+    <pre><span class="c">// icon recipe — stored per plant</span>
+<span class="k">icon</span>: {
+  <span class="k">base</span>:  <span class="s">"trailing-vine"</span>,
+  <span class="k">palette</span>: {
+    <span class="k">leaf2</span>: <span class="s">"#5C9A33"</span>,
+  },
+  <span class="k">variegation</span>: {
+    <span class="k">pattern</span>: <span class="s">"speckle"</span>,
+    <span class="k">color</span>:   <span class="s">"#E7C463"</span>,
+  },
+  <span class="k">bloom</span>: <span class="s">null</span>,
+}</pre>
+    <pre><span class="c">// renderer → CSS variable slots</span>
+&lt;div class=<span class="s">"ic"</span> data-veg=<span class="s">"speckle"</span> style=<span class="s">"</span>
+  <span class="k">--leaf-2</span>: #5C9A33;
+  <span class="k">--variegation</span>: #E7C463;
+<span class="s">"</span>&gt;
+  &lt;use href=<span class="s">"#trailing-vine"</span> /&gt;
+&lt;/div&gt;</pre>
+  </div>
+  <p class="note rt-small" style="margin-top:20px;">One base SVG in a shared sprite, one record per plant. Flowering plants add a <code style="font-family:var(--font-mono);font-size:.9em;">bloom</code> object — a head name plus palette tokens — validated against the bloom set so no off-brand hue slips in. New cultivar = a new row, never a new drawing.</p>
+</section>
+
+<!-- ======================================================= 07 ROADMAP -->
+<section class="wrap">
+  <div class="eyebrow"><span class="num">07</span><span class="rt-eyebrow">Where this goes</span></div>
+  <h2 class="rt-h2 sec">14 bases → 50 plants, phased</h2>
+  <div class="road" style="margin-top:36px;">
+    <div class="phase">
+      <div class="big">Phase 1 · lock the system</div>
+      <h3 class="rt-h3">Refine the 14 bases</h3>
+      <ul>
+        <li>All 14 silhouettes drawn — now tighten soil anchoring, stroke weights, optical balance</li>
+        <li>Lock the pot, slot palette, and clip-masked variegation as reusable rules</li>
+        <li><strong>Bloom-heads + palette folded in — flowering plants switched on</strong></li>
+        <li>Ship the base sprite + a starter set of ~24 skinned plants</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="big">Phase 2 · reach 50</div>
+      <h3 class="rt-h3">Skin the long tail</h3>
+      <ul>
+        <li>Mostly recipes, not drawings — cultivars &amp; color variants</li>
+        <li>Skin the flowering long tail — more heads &amp; hues only as plants need them</li>
+        <li>Wire <code style="font-family:var(--font-mono);font-size:.85em;">icon</code> into the Plant model + Add-plant flow</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="wrap foot">Rootly design system · plant icon POC · base + skin via CSS variable slots</div>
+
+</body>
+</html>
