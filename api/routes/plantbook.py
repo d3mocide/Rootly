@@ -21,7 +21,7 @@ def _require_key() -> None:
 
 @router.get("/search", response_model=List[PlantSearchResult])
 async def search_plants(
-    q: str = Query(..., min_length=2),
+    q: str = Query(..., min_length=3),
     _user: User = Depends(get_current_user),
 ) -> List[PlantSearchResult]:
     _require_key()
