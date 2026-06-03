@@ -36,7 +36,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (speciesQuery.length < 2) {
+    if (speciesQuery.length < 3) {
       setSearchResults([]);
       setShowDropdown(false);
       return;
