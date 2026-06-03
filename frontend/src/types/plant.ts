@@ -1,10 +1,12 @@
 export type PlantStatus = 'dry' | 'soon' | 'thriving' | 'watered' | 'resting';
 
+export type PlantKind = 'monstera' | 'fig' | 'pothos' | 'snake' | 'succulent';
+
 export interface Plant {
   id: string;
   name: string;
   species: string;
-  kind: 'monstera' | 'fig' | 'pothos' | 'snake' | 'succulent';
+  kind?: PlantKind;
   room: string;
   moisture: number;
   status: PlantStatus;
@@ -14,6 +16,13 @@ export interface Plant {
   growth: number[];
   lastWater: string;
   createdAt?: string;
+  plantbookPid?: string;
+  minLightLux?: number | null;
+  maxLightLux?: number | null;
+  minTemp?: number | null;
+  maxTemp?: number | null;
+  minEnvHumid?: number | null;
+  maxEnvHumid?: number | null;
 }
 
 export const STATUS_META: Record<PlantStatus, { label: string; color: string; soft: string; text: string }> = {

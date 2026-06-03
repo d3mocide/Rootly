@@ -17,6 +17,7 @@ from database import Base  # noqa
 import models.user  # noqa
 import models.plant  # noqa
 import models.area  # noqa
+import models.plant_profile  # noqa
 
 target_metadata = Base.metadata
 
