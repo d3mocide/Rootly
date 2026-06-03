@@ -27,6 +27,8 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
   const [selectedProfile, setSelectedProfile] = useState<PlantProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
+  const [kind, setKind] = useState<Plant['kind'] | undefined>(undefined);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,7 +103,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
       await onAdd({
         name: name.trim(),
         species: selectedProfile ? selectedProfile.display_name : speciesQuery.trim(),
-        kind: undefined,
+        kind: kind,
         room: room.trim() || (areas[0] ? areas[0].name : ''),
         every: Number(every) || 7,
         light: selectedProfile ? (luxToLabel(selectedProfile.min_light_lux, selectedProfile.max_light_lux) || '') : '',
@@ -119,7 +121,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
         maxEnvHumid: selectedProfile?.max_env_humid,
       });
       setName(''); setRoom(''); setNote(''); setEvery(7);
-      setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false);
+      setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false); setKind(undefined);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to add plant.');
@@ -286,6 +288,23 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
+                <label style={labelStyle}>Icon</label>
+                <select
+                  value={kind ?? ''}
+                  onChange={e => setKind((e.target.value || undefined) as Plant['kind'] | undefined)}
+                  style={inputStyle}
+                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+                >
+                  <option value="">Auto</option>
+                  <option value="monstera">Monstera</option>
+                  <option value="fig">Fiddle-leaf Fig</option>
+                  <option value="pothos">Pothos</option>
+                  <option value="snake">Snake Plant</option>
+                  <option value="succulent">Succulent</option>
+                </select>
+              </div>
+              <div>
                 <label style={labelStyle}>Room</label>
                 <select
                   value={room}
@@ -298,22 +317,22 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
                   {areas.length === 0 && <option value="">No locations available</option>}
                 </select>
               </div>
-              {!selectedProfile && (
-                <div>
-                  <label style={labelStyle}>Water every (days)</label>
-                  <input
-                    type="number"
-                    value={every}
-                    onChange={e => setEvery(Number(e.target.value))}
-                    placeholder="7"
-                    min={1}
-                    style={inputStyle}
-                    onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                    onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                  />
-                </div>
-              )}
             </div>
+            {!selectedProfile && (
+              <div>
+                <label style={labelStyle}>Water every (days)</label>
+                <input
+                  type="number"
+                  value={every}
+                  onChange={e => setEvery(Number(e.target.value))}
+                  placeholder="7"
+                  min={1}
+                  style={inputStyle}
+                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+                />
+              </div>
+            )}
 
             <div>
               <label style={labelStyle}>Notes</label>
