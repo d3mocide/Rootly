@@ -3,12 +3,16 @@ import { T } from '../../tokens';
 import { Button, PlantRow, SectionHeader, Card, Icon } from '../../components';
 import { PlantArt } from '../../components/PlantArt';
 import { Topbar } from './Topbar';
+import { getDisplayName } from '../../api/auth';
+import type { UserResponse } from '../../api/auth';
+import { getLocalDateInTimezone, getUpcomingWateringText } from '../../utils/date';
 
 interface Props {
   plants: Plant[];
   onOpen: (p: Plant) => void;
   onWater: (p: Plant) => void;
   onWaterAll: () => void;
+  currentUser: UserResponse | null;
 }
 
 function Summary({ icon, label, value, tint, color }: { icon: string; label: string; value: string; tint: string; color: string }) {
@@ -25,15 +29,33 @@ function Summary({ icon, label, value, tint, color }: { icon: string; label: str
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-export function TodayDesktop({ plants, onOpen, onWater, onWaterAll }: Props) {
+export function TodayDesktop({ plants, onOpen, onWater, onWaterAll, currentUser }: Props) {
   const needs = plants.filter(p => p.status === 'dry' || p.status === 'soon');
   const well = plants.filter(p => p.status === 'thriving' || p.status === 'watered');
   const dryCount = plants.filter(p => p.status === 'dry').length;
-  const day = DAYS[new Date().getDay()];
+  
+  const nowTz = getLocalDateInTimezone(new Date());
+  const day = DAYS[nowTz.getDay()];
+
+  const h = nowTz.getHours();
+  const timeGreeting = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const displayName = currentUser ? getDisplayName(currentUser) : 'Guest';
+  const subtitle = `${timeGreeting}, ${displayName} · ${day}`;
+
+  const upcoming = plants
+    .filter(p => p.status !== 'dry')
+    .map(p => {
+      const baseDate = p.lastWater ? new Date(p.lastWater) : new Date(p.createdAt || 0);
+      const nextDate = new Date(baseDate.getTime() + p.every * 24 * 60 * 60 * 1000);
+      const nextDateTz = getLocalDateInTimezone(nextDate);
+      return { plant: p, nextDateTz };
+    })
+    .sort((a, b) => a.nextDateTz.getTime() - b.nextDateTz.getTime())
+    .slice(0, 3);
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', height: '100%' }}>
-      <Topbar subtitle={`Good morning, Maya · ${day}`} title="Today">
+      <Topbar subtitle={subtitle} title="Today">
         <Button variant="accent" icon="droplet" onClick={onWaterAll}>Water all due</Button>
       </Topbar>
 
@@ -60,7 +82,13 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll }: Props) {
           <div style={{ marginTop: 28 }}>
             <SectionHeader>Needs care today</SectionHeader>
             <Card pad={0}>
-              {needs.map((p, i) => <PlantRow key={p.id} plant={p} onClick={() => onOpen(p)} onWater={onWater} last={i === needs.length - 1} />)}
+              {needs.length > 0 ? (
+                needs.map((p, i) => <PlantRow key={p.id} plant={p} onClick={() => onOpen(p)} onWater={onWater} last={i === needs.length - 1} />)
+              ) : (
+                <div style={{ fontFamily: T.sans, fontSize: 14.5, color: T.ink3, padding: '20px 16px', textAlign: 'center' }}>
+                  No plants need care today.
+                </div>
+              )}
             </Card>
           </div>
 
@@ -68,7 +96,13 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll }: Props) {
           <div style={{ marginTop: 28 }}>
             <SectionHeader action="See all plants">Doing well</SectionHeader>
             <Card pad={0}>
-              {well.map((p, i) => <PlantRow key={p.id} plant={p} onClick={() => onOpen(p)} onWater={onWater} last={i === well.length - 1} />)}
+              {well.length > 0 ? (
+                well.map((p, i) => <PlantRow key={p.id} plant={p} onClick={() => onOpen(p)} onWater={onWater} last={i === well.length - 1} />)
+              ) : (
+                <div style={{ fontFamily: T.sans, fontSize: 14.5, color: T.ink3, padding: '20px 16px', textAlign: 'center' }}>
+                  No plants are currently doing well.
+                </div>
+              )}
             </Card>
           </div>
         </div>
@@ -87,18 +121,24 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll }: Props) {
           <Card>
             <SectionHeader>Upcoming</SectionHeader>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {([['Pothos', 'Tomorrow · 9am', 'pothos'], ['Snake plant', 'Thursday', 'snake'], ['Echeveria', 'Sunday', 'succulent']] as const).map(([n, w, k], i) => (
-                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderTop: i ? `1px solid ${T.stone100}` : 'none' }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: T.sprout, display: 'grid', placeItems: 'center' }}>
-                    <PlantArt kind={k} size={30} />
+              {upcoming.length > 0 ? (
+                upcoming.map(({ plant }, i) => (
+                  <div key={plant.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderTop: i ? `1px solid ${T.stone100}` : 'none' }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: T.sprout, display: 'grid', placeItems: 'center' }}>
+                      <PlantArt kind={plant.kind} size={30} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: T.sans, fontSize: 14.5, fontWeight: 600, color: T.ink }}>{plant.name}</div>
+                      <div style={{ fontFamily: T.sans, fontSize: 12.5, color: T.ink3 }}>{getUpcomingWateringText(plant)}</div>
+                    </div>
+                    <Icon name="droplet" size={17} color={T.ink3} stroke={1.9} />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: T.sans, fontSize: 14.5, fontWeight: 600, color: T.ink }}>{n}</div>
-                    <div style={{ fontFamily: T.sans, fontSize: 12.5, color: T.ink3 }}>{w}</div>
-                  </div>
-                  <Icon name="droplet" size={17} color={T.ink3} stroke={1.9} />
+                ))
+              ) : (
+                <div style={{ fontFamily: T.sans, fontSize: 14, color: T.ink3, padding: '10px 0', textAlign: 'center' }}>
+                  No upcoming waterings.
                 </div>
-              ))}
+              )}
             </div>
           </Card>
         </div>

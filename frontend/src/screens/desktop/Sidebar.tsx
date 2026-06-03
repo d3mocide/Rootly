@@ -2,11 +2,17 @@ import { RootlyMark, Icon } from '../../components/Icon';
 import { T } from '../../tokens';
 import { Button } from '../../components';
 import type { TabId } from '../mobile/TabBar';
+import { getDisplayName } from '../../api/auth';
+import type { UserResponse } from '../../api/auth';
 
 interface SidebarProps {
   active: TabId;
   onNav: (tab: TabId) => void;
   onAdd: () => void;
+  currentUser: UserResponse | null;
+  plantsCount: number;
+  onLogout: () => void;
+  onSettings: () => void;
 }
 
 const NAV_ITEMS: { id: TabId; label: string; icon: string }[] = [
@@ -16,7 +22,10 @@ const NAV_ITEMS: { id: TabId; label: string; icon: string }[] = [
   { id: 'care', label: 'Care', icon: 'bell' },
 ];
 
-export function Sidebar({ active, onNav, onAdd }: SidebarProps) {
+export function Sidebar({ active, onNav, onAdd, currentUser, plantsCount, onLogout, onSettings }: SidebarProps) {
+  const displayName = currentUser ? getDisplayName(currentUser) : 'Guest';
+  const avatarLetter = displayName[0]?.toUpperCase() || '?';
+
   return (
     <div style={{
       width: 248, flexShrink: 0, background: T.paper, borderRight: `1px solid ${T.stone100}`,
@@ -65,12 +74,48 @@ export function Sidebar({ active, onNav, onAdd }: SidebarProps) {
 
       {/* account */}
       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 11, padding: '10px 8px', borderTop: `1px solid ${T.stone100}` }}>
-        <div style={{ width: 38, height: 38, borderRadius: '50%', background: T.sun, display: 'grid', placeItems: 'center', fontFamily: T.display, fontWeight: 700, color: '#3a2c12', fontSize: 15 }}>M</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 600, color: T.ink }}>Maya Okonkwo</div>
-          <div style={{ fontFamily: T.sans, fontSize: 12, color: T.ink3 }}>5 plants</div>
+        <div style={{ width: 38, height: 38, borderRadius: '50%', background: T.sun, display: 'grid', placeItems: 'center', fontFamily: T.display, fontWeight: 700, color: '#3a2c12', fontSize: 15 }}>
+          {avatarLetter}
         </div>
-        <Icon name="settings" size={18} color={T.ink3} stroke={1.9} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 600, color: T.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {displayName}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontFamily: T.sans, fontSize: 12, color: T.ink3 }}>{plantsCount} {plantsCount === 1 ? 'plant' : 'plants'}</span>
+            <span style={{ fontSize: 9, color: T.stone300 }}>•</span>
+            <button
+              onClick={onLogout}
+              style={{
+                fontFamily: T.sans, fontSize: 12, fontWeight: 600, color: T.ink3,
+                background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
+                textDecoration: 'underline'
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = T.ink}
+              onMouseLeave={e => e.currentTarget.style.color = T.ink3}
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+        <button
+          onClick={onSettings}
+          title="Settings"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 4,
+            borderRadius: 8,
+            display: 'grid',
+            placeItems: 'center',
+            transition: 'background .14s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = T.linen}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          <Icon name="settings" size={18} color={T.ink3} stroke={1.9} />
+        </button>
       </div>
     </div>
   );

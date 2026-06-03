@@ -1,11 +1,9 @@
 import type { Plant } from '../../types/plant';
 import { T } from '../../tokens';
 import { Button, PlantRow, SectionHeader, Card, Icon } from '../../components';
-
-function greeting() {
-  const h = new Date().getHours();
-  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-}
+import { getDisplayName } from '../../api/auth';
+import type { UserResponse } from '../../api/auth';
+import { getLocalDateInTimezone } from '../../utils/date';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -14,13 +12,20 @@ interface Props {
   onOpen: (p: Plant) => void;
   onWater: (p: Plant) => void;
   onWaterAll: () => void;
+  currentUser: UserResponse | null;
+  onSettings: () => void;
 }
 
-export function TodayScreen({ plants, onOpen, onWater, onWaterAll }: Props) {
+export function TodayScreen({ plants, onOpen, onWater, onWaterAll, currentUser, onSettings }: Props) {
   const needs = plants.filter(p => p.status === 'dry' || p.status === 'soon');
   const well = plants.filter(p => p.status === 'thriving' || p.status === 'watered');
   const dryCount = plants.filter(p => p.status === 'dry').length;
-  const day = DAYS[new Date().getDay()];
+
+  const nowTz = getLocalDateInTimezone(new Date());
+  const day = DAYS[nowTz.getDay()];
+
+  const h = nowTz.getHours();
+  const timeGreeting = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: T.paper, WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
@@ -28,14 +33,27 @@ export function TodayScreen({ plants, onOpen, onWater, onWaterAll }: Props) {
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontFamily: T.sans, fontSize: 13.5, color: T.ink3, fontWeight: 600 }}>{greeting()} · {day}</div>
+            <div style={{ fontFamily: T.sans, fontSize: 13.5, color: T.ink3, fontWeight: 600 }}>
+              {timeGreeting}, {currentUser ? getDisplayName(currentUser) : 'Guest'} · {day}
+            </div>
             <h1 style={{ margin: '4px 0 0', fontFamily: T.display, fontWeight: 700, fontSize: 30, color: T.ink, letterSpacing: '-0.03em' }}>Today</h1>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button style={{ width: 40, height: 40, borderRadius: '50%', background: T.card, border: `1px solid ${T.stone100}`, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
               <Icon name="bell" size={21} color={T.ink2} />
             </button>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: T.sun, display: 'grid', placeItems: 'center', fontFamily: T.display, fontWeight: 700, color: '#3a2c12', fontSize: 15 }}>M</div>
+            <button
+              onClick={onSettings}
+              title="Settings"
+              style={{
+                width: 40, height: 40, borderRadius: '50%', background: T.sun,
+                border: 'none', display: 'grid', placeItems: 'center',
+                fontFamily: T.display, fontWeight: 700, color: '#3a2c12', fontSize: 15,
+                cursor: 'pointer'
+              }}
+            >
+              {currentUser ? getDisplayName(currentUser)[0]?.toUpperCase() : 'G'}
+            </button>
           </div>
         </div>
 

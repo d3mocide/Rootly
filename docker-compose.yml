@@ -1,6 +1,9 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - TIMEZONE=${TIMEZONE:-UTC}
     ports:
       - "80:80"
     depends_on:
@@ -17,6 +20,8 @@ services:
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
       PRODUCTION: ${PRODUCTION:-false}
+      TIMEZONE: ${TIMEZONE:-UTC}
+      TZ: ${TIMEZONE:-UTC}
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,6 +35,7 @@ services:
       POSTGRES_USER: rootly
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: rootly
+      TZ: ${TIMEZONE:-UTC}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

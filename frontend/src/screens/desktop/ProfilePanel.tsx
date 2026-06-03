@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import type { Plant } from '../../types/plant';
 import { T } from '../../tokens';
 import { Button, StatusPill, MoistureRing, Sparkline, SectionHeader, Icon } from '../../components';
@@ -7,10 +8,31 @@ interface Props {
   plant: Plant | null;
   onClose: () => void;
   onWater: (p: Plant) => void;
+  onEdit: (p: Plant) => void;
+  onDelete: (p: Plant) => void;
 }
 
-export function ProfilePanel({ plant, onClose, onWater }: Props) {
+export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete }: Props) {
+  const [showMenu, setShowMenu] = useState(false);
+
   if (!plant) return null;
+  
+  const menuItemStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+    border: 'none',
+    background: 'none',
+    padding: '10px 16px',
+    fontFamily: T.sans,
+    fontSize: 14,
+    fontWeight: 600,
+    color: T.ink,
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'background .15s',
+  };
 
   const activity = [
     { icon: 'droplet', text: 'Watered', when: plant.lastWater, color: '#5E8FB8' },
@@ -40,9 +62,58 @@ export function ProfilePanel({ plant, onClose, onWater }: Props) {
             <button onClick={onClose} style={glassBtn}>
               <Icon name="x" size={19} color={T.ink} />
             </button>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
               <Button variant="primary" size="sm" icon="droplet" onClick={() => onWater(plant)}>Water now</Button>
-              <button style={glassBtn}><Icon name="more" size={19} color={T.ink} /></button>
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => setShowMenu(!showMenu)} style={glassBtn}>
+                  <Icon name="more" size={19} color={T.ink} />
+                </button>
+                {showMenu && (
+                  <>
+                    <div onClick={() => setShowMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 8px)',
+                      right: 0,
+                      background: T.card,
+                      borderRadius: 14,
+                      boxShadow: '0 8px 24px rgba(30,42,34,0.12)',
+                      border: `1px solid ${T.stone100}`,
+                      padding: '6px 0',
+                      minWidth: 150,
+                      zIndex: 41,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      animation: 'fadeIn .15s cubic-bezier(.22,.61,.36,1)',
+                    }}>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          onEdit(plant);
+                        }}
+                        style={menuItemStyle}
+                        onMouseEnter={e => e.currentTarget.style.background = T.stone100}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        <Icon name="pencil" size={15} color={T.ink2} />
+                        <span>Edit Details</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          onDelete(plant);
+                        }}
+                        style={{ ...menuItemStyle, color: '#BC5B49' }}
+                        onMouseEnter={e => e.currentTarget.style.background = T.stone100}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        <Icon name="trash" size={15} color="#BC5B49" />
+                        <span>Delete Plant</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -89,15 +160,36 @@ export function ProfilePanel({ plant, onClose, onWater }: Props) {
           {/* growth */}
           <div style={{ marginTop: 22 }}>
             <SectionHeader action="Log growth">Growth</SectionHeader>
-            <div style={{ background: T.card, borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 6px rgba(30,42,34,.06)' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontFamily: T.mono, fontSize: 24, fontWeight: 500, color: T.canopy }}>+{plant.growth[plant.growth.length - 1] - plant.growth[0]}cm</span>
-                <span style={{ fontFamily: T.sans, fontSize: 13, color: T.ink3 }}>over 7 weeks</span>
+            {!plant.growth || plant.growth.length < 2 ? (
+              <div style={{
+                background: T.card, borderRadius: 18, padding: '24px 20px',
+                boxShadow: '0 2px 6px rgba(30,42,34,.06)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', textAlign: 'center', gap: 10,
+              }}>
+                <div style={{ width: 42, height: 42, borderRadius: '50%', background: T.linen, display: 'grid', placeItems: 'center' }}>
+                  <Icon name="ruler" size={20} color={T.ink3} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color: T.ink }}>No growth records yet</div>
+                  <div style={{ fontFamily: T.sans, fontSize: 13, color: T.ink3, marginTop: 4, maxWidth: 300, lineHeight: 1.4 }}>
+                    Log your plant's measurements to track its progress over time.
+                  </div>
+                </div>
               </div>
-              <div style={{ marginTop: 10 }}>
-                <Sparkline data={plant.growth} width={420} />
+            ) : (
+              <div style={{ background: T.card, borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 6px rgba(30,42,34,.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 24, fontWeight: 500, color: T.canopy }}>
+                    +{plant.growth[plant.growth.length - 1] - plant.growth[0]}cm
+                  </span>
+                  <span style={{ fontFamily: T.sans, fontSize: 13, color: T.ink3 }}>over 7 weeks</span>
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <Sparkline data={plant.growth} width={420} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* activity */}

@@ -58,6 +58,18 @@ async def setup(body: UserSetup, response: Response, db: AsyncSession = Depends(
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    # Seed default areas
+    from models.area import Area
+    default_areas = [
+        Area(user_id=user.id, name="Living room"),
+        Area(user_id=user.id, name="Bedroom"),
+        Area(user_id=user.id, name="Office"),
+        Area(user_id=user.id, name="Kitchen"),
+    ]
+    db.add_all(default_areas)
+    await db.commit()
+
     _set_auth_cookies(response, user.id)
     return user
 

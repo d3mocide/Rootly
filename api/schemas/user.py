@@ -13,6 +13,7 @@ class UserSetup(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    nonce: Optional[str] = None
 
 
 class ChangePassword(BaseModel):

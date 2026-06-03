@@ -13,6 +13,7 @@ export interface Plant {
   note: string;
   growth: number[];
   lastWater: string;
+  createdAt?: string;
 }
 
 export const STATUS_META: Record<PlantStatus, { label: string; color: string; soft: string; text: string }> = {

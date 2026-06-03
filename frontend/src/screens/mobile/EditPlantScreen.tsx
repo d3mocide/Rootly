@@ -6,18 +6,19 @@ import type { Area } from '../../types/area';
 
 interface Props {
   onClose: () => void;
-  onAdd: (plant: Omit<Plant, 'id'>) => Promise<void>;
+  plant: Plant;
+  onEdit: (id: string, updates: Partial<Plant>) => Promise<void>;
   areas: Area[];
 }
 
-export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
-  const [name, setName] = useState('');
-  const [species, setSpecies] = useState('');
-  const [kind, setKind] = useState<'monstera' | 'fig' | 'pothos' | 'snake' | 'succulent'>('monstera');
-  const [room, setRoom] = useState('');
-  const [every, setEvery] = useState(7);
-  const [light, setLight] = useState('');
-  const [note, setNote] = useState('');
+export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
+  const [name, setName] = useState(plant.name);
+  const [species, setSpecies] = useState(plant.species);
+  const [kind, setKind] = useState<Plant['kind']>(plant.kind);
+  const [room, setRoom] = useState(plant.room);
+  const [every, setEvery] = useState(plant.every);
+  const [light, setLight] = useState(plant.light);
+  const [note, setNote] = useState(plant.note);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,22 +32,18 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
     setError(null);
     setLoading(true);
     try {
-      await onAdd({
+      await onEdit(plant.id, {
         name: name.trim(),
         species: species.trim(),
         kind,
-        room: room.trim() || (areas[0] ? areas[0].name : ''),
+        room: room.trim(),
         every: Number(every) || 7,
         light: light.trim(),
         note: note.trim(),
-        moisture: 100,
-        status: 'watered',
-        growth: [],
-        lastWater: new Date().toISOString(),
       });
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to add plant.');
+      setError(err instanceof Error ? err.message : 'Failed to update plant.');
     } finally {
       setLoading(false);
     }
@@ -82,7 +79,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
         <button onClick={onClose} style={{ width: 40, height: 40, borderRadius: '50%', background: T.linen, border: 'none', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
           <Icon name="x" size={20} color={T.ink} />
         </button>
-        <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, color: T.ink }}>Add a plant</div>
+        <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, color: T.ink }}>Edit plant details</div>
         <button
           onClick={handleSave}
           disabled={loading}

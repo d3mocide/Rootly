@@ -7,6 +7,7 @@ services:
       - "5173:5173"
     environment:
       - VITE_API_URL=http://api:8000
+      - TIMEZONE=${TIMEZONE:-UTC}
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -15,5 +16,7 @@ services:
     command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
+    environment:
+      - TZ=${TIMEZONE:-UTC}
     volumes:
       - ./api:/app

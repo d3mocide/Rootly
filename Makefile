@@ -1,4 +1,4 @@
-.PHONY: setup up down build build-dev build-prod nuke restart logs shell migrate migration downgrade psql redis dev fe-dev
+.PHONY: setup up down build build-dev build-prod nuke restart logs shell migrate migration downgrade psql redis dev fe-dev seed
 SHELL := /bin/bash
 
 # ── First-time setup ──────────────────────────────────────────────────────────
@@ -61,6 +61,9 @@ psql:
 
 redis:
 	docker compose exec redis redis-cli
+
+seed:
+	docker compose exec api python seed.py
 
 # ── Frontend dev (runs Vite against a local API on port 8000) ─────────────────
 fe-dev:

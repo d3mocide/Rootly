@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379"
     cors_origins: str = ""
     production: bool = False
+    timezone: str = "UTC"
 
     model_config = {"env_file": ".env", "env_ignore_empty": True}
 

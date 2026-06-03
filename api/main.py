@@ -9,6 +9,7 @@ from config import settings
 from routes.auth import router as auth_router
 from routes.plants import router as plants_router
 from routes.admin import router as admin_router
+from routes.areas import router as areas_router
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(plants_router)
 app.include_router(admin_router)
+app.include_router(areas_router)
 
 
 @app.exception_handler(SQLAlchemyError)

@@ -117,6 +117,7 @@ export function MoistureRing({ value, size = 132, stroke = 11 }: { value: number
 export function Sparkline({ data, width = 300, height = 56, color = T.fern }: {
   data: number[]; width?: number; height?: number; color?: string;
 }) {
+  if (!data || data.length < 2) return null;
   const max = Math.max(...data), min = Math.min(...data);
   const rng = max - min || 1;
   const pts = data.map((d, i) => [(i / (data.length - 1)) * width, height - 6 - ((d - min) / rng) * (height - 14)]);
@@ -183,7 +184,34 @@ interface PlantRowProps {
 
 export function PlantRow({ plant, onClick, onWater, last }: PlantRowProps) {
   const s = STATUS_META[plant.status];
-  const due = plant.status === 'dry';
+  
+  let buttonContent: React.ReactNode;
+  let buttonBg: string;
+  let onButtonClick: React.MouseEventHandler<HTMLButtonElement>;
+
+  if (plant.status === 'dry' || plant.status === 'soon') {
+    buttonBg = T.sprout;
+    buttonContent = <Icon name="droplet" size={17} color={T.canopy} stroke={2} />;
+    onButtonClick = (e) => {
+      e.stopPropagation();
+      onWater?.(plant);
+    };
+  } else if (plant.status === 'watered') {
+    buttonBg = T.waterSoft;
+    buttonContent = <Icon name="check" size={17} color={T.water} stroke={2.5} />;
+    onButtonClick = (e) => {
+      e.stopPropagation();
+      onClick();
+    };
+  } else {
+    buttonBg = T.linen;
+    buttonContent = <Icon name="chevronRight" size={17} color={T.ink3} stroke={2} />;
+    onButtonClick = (e) => {
+      e.stopPropagation();
+      onClick();
+    };
+  }
+
   return (
     <div
       onClick={onClick}
@@ -202,16 +230,15 @@ export function PlantRow({ plant, onClick, onWater, last }: PlantRowProps) {
       </div>
       <span style={{ fontFamily: T.mono, fontSize: 13, color: T.ink2 }}>{plant.moisture}%</span>
       <button
-        onClick={e => { e.stopPropagation(); onWater?.(plant); }}
+        onClick={onButtonClick}
         style={{
           width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer',
           flexShrink: 0, display: 'grid', placeItems: 'center',
-          background: due ? T.sprout : T.linen,
+          background: buttonBg,
+          transition: 'all .18s cubic-bezier(.22,.61,.36,1)',
         }}
       >
-        {due
-          ? <Icon name="droplet" size={17} color={T.canopy} stroke={2} />
-          : <Icon name="chevronRight" size={17} color={T.ink3} stroke={2} />}
+        {buttonContent}
       </button>
     </div>
   );
@@ -261,3 +288,6 @@ export function Toast({ message }: { message: string }) {
 // ---- Re-exports -------------------------------------------------
 export { Icon, RootlyMark } from './Icon';
 export { PlantArt } from './PlantArt';
+export { SettingsModal } from './SettingsModal';
+export { AddPlantModal } from './AddPlantModal';
+export { EditPlantModal } from './EditPlantModal';

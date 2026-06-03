@@ -1,8 +1,21 @@
-from pydantic import BaseModel
-from datetime import datetime
+from pydantic import BaseModel, model_validator, field_validator
+from datetime import datetime, timezone
 from uuid import UUID
 from typing import Optional, List
 from models.plant import PlantKind, PlantStatus
+
+
+def _normalize_last_water(v):
+    if v is None:
+        return None
+    if isinstance(v, str):
+        try:
+            v = datetime.fromisoformat(v.replace("Z", "+00:00"))
+        except ValueError:
+            pass
+    if isinstance(v, datetime) and v.tzinfo is not None:
+        return v.astimezone(timezone.utc).replace(tzinfo=None)
+    return v
 
 
 class PlantCreate(BaseModel):
@@ -18,6 +31,11 @@ class PlantCreate(BaseModel):
     growth: List[float] = []
     last_water: Optional[datetime] = None
 
+    @field_validator("last_water", mode="before")
+    @classmethod
+    def validate_last_water(cls, v):
+        return _normalize_last_water(v)
+
 
 class PlantUpdate(BaseModel):
     name: Optional[str] = None
@@ -31,6 +49,11 @@ class PlantUpdate(BaseModel):
     note: Optional[str] = None
     growth: Optional[List[float]] = None
     last_water: Optional[datetime] = None
+
+    @field_validator("last_water", mode="before")
+    @classmethod
+    def validate_last_water(cls, v):
+        return _normalize_last_water(v)
 
 
 class PlantResponse(BaseModel):
@@ -50,3 +73,52 @@ class PlantResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode="before")
+    @classmethod
+    def calculate_dynamic_fields(cls, data):
+        now = datetime.utcnow()
+        last_water = getattr(data, "last_water", None) if not isinstance(data, dict) else data.get("last_water")
+        created_at = getattr(data, "created_at", None) if not isinstance(data, dict) else data.get("created_at")
+        base_date = last_water or created_at or now
+
+        if isinstance(base_date, str):
+            try:
+                base_date = datetime.fromisoformat(base_date.replace("Z", "+00:00"))
+            except Exception:
+                base_date = now
+
+        if base_date.tzinfo is not None:
+            now_compare = datetime.now(timezone.utc)
+        else:
+            now_compare = now
+
+        delta_seconds = (now_compare - base_date).total_seconds()
+        delta_days = max(0.0, delta_seconds / (24.0 * 3600.0))
+
+        every_val = getattr(data, "every", None) if not isinstance(data, dict) else data.get("every")
+        every_val = every_val or 7
+
+        moisture = max(0.0, round(1.0 - (delta_days / every_val), 2))
+
+        if delta_days < 1.0:
+            status_val = PlantStatus.watered
+        elif delta_days >= every_val:
+            status_val = PlantStatus.dry
+        elif (every_val - delta_days <= 2.0) or (moisture <= 0.35):
+            status_val = PlantStatus.soon
+        else:
+            status_val = PlantStatus.thriving
+
+        if isinstance(data, dict):
+            data["moisture"] = moisture
+            data["status"] = status_val
+            return data
+        else:
+            fields = cls.model_fields.keys()
+            res = {}
+            for field in fields:
+                res[field] = getattr(data, field, None)
+            res["moisture"] = moisture
+            res["status"] = status_val
+            return res

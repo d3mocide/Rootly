@@ -1,4 +1,6 @@
 FROM node:20-alpine AS builder
+ARG TIMEZONE=UTC
+ENV TIMEZONE=$TIMEZONE
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci

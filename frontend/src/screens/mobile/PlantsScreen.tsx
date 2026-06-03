@@ -3,15 +3,18 @@ import type { Plant } from '../../types/plant';
 import { T } from '../../tokens';
 import { PlantCard, Icon } from '../../components';
 
+import type { Area } from '../../types/area';
+
 interface Props {
   plants: Plant[];
   onOpen: (p: Plant) => void;
+  areas: Area[];
 }
 
-const CHIPS = ['All', 'Needs care', 'Living room', 'Bedroom', 'Office', 'Kitchen'];
-
-export function PlantsScreen({ plants, onOpen }: Props) {
+export function PlantsScreen({ plants, onOpen, areas }: Props) {
   const [filter, setFilter] = useState('All');
+  const chips = ['All', 'Needs care', ...areas.map(a => a.name)];
+  
   const shown = plants.filter(p => {
     if (filter === 'All') return true;
     if (filter === 'Needs care') return p.status === 'dry' || p.status === 'soon';
@@ -34,7 +37,7 @@ export function PlantsScreen({ plants, onOpen }: Props) {
 
         {/* filter chips */}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '14px -20px 0', padding: '0 20px' }}>
-          {CHIPS.map(c => (
+          {chips.map(c => (
             <button key={c} onClick={() => setFilter(c)} style={{
               flexShrink: 0, fontFamily: T.sans, fontSize: 13.5,
               fontWeight: filter === c ? 600 : 500, borderRadius: 999, padding: '8px 14px', cursor: 'pointer',

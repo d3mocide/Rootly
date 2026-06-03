@@ -14,9 +14,15 @@ interface ApiPlant {
   note: string;
   growth: number[];
   last_water: string | null;
+  created_at: string;
 }
 
-const fromApi = (p: ApiPlant): Plant => ({ ...p, lastWater: p.last_water ?? '' });
+const fromApi = (p: ApiPlant): Plant => ({
+  ...p,
+  moisture: Math.round(p.moisture * 100),
+  lastWater: p.last_water ?? '',
+  createdAt: p.created_at,
+});
 
 export async function fetchPlants(): Promise<Plant[]> {
   const data: ApiPlant[] = await apiFetch('/plants');
@@ -28,21 +34,29 @@ export async function apiWaterPlant(id: string): Promise<Plant> {
 }
 
 export async function apiCreatePlant(plant: Omit<Plant, 'id'>): Promise<Plant> {
-  const { lastWater, ...rest } = plant;
+  const { lastWater, moisture, ...rest } = plant;
   return fromApi(
     await apiFetch('/plants', {
       method: 'POST',
-      body: JSON.stringify({ ...rest, last_water: lastWater || null }),
+      body: JSON.stringify({
+        ...rest,
+        moisture: moisture / 100,
+        last_water: lastWater || null,
+      }),
     })
   );
 }
 
 export async function apiUpdatePlant(id: string, updates: Partial<Plant>): Promise<Plant> {
-  const { lastWater, ...rest } = updates;
+  const { lastWater, moisture, ...rest } = updates;
   return fromApi(
     await apiFetch(`/plants/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ ...rest, ...(lastWater !== undefined ? { last_water: lastWater } : {}) }),
+      body: JSON.stringify({
+        ...rest,
+        ...(moisture !== undefined ? { moisture: moisture / 100 } : {}),
+        ...(lastWater !== undefined ? { last_water: lastWater } : {}),
+      }),
     })
   );
 }

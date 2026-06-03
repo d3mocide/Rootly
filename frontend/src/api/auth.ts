@@ -29,7 +29,8 @@ export async function setup(
 }
 
 export async function login(email: string, password: string): Promise<void> {
-  await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+  const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
+  await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, nonce }) });
 }
 
 export async function apiLogout(): Promise<void> {
@@ -44,3 +45,11 @@ export async function getMe(): Promise<UserResponse> {
 export async function checkSetup(): Promise<{ setup_required: boolean }> {
   return apiFetch('/auth/setup-status');
 }
+
+export async function apiChangePassword(currentPassword: string, newPassword: string): Promise<void> {
+  await apiFetch('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+}
+

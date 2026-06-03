@@ -71,7 +71,7 @@ async def water_plant(plant_id: UUID, user: User = Depends(get_current_user), db
     plant = result.scalar_one_or_none()
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
-    plant.last_water = datetime.now(timezone.utc)
+    plant.last_water = datetime.now(timezone.utc).replace(tzinfo=None)
     plant.moisture = 1.0
     plant.status = "watered"
     await db.commit()
