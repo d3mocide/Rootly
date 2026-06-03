@@ -120,11 +120,17 @@ async def get_detail(pid: str, db: AsyncSession) -> PlantProfile | None:
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         resp = await client.get(
-            f"{PLANTBOOK_BASE}/plant/detail/{pid}",
+            f"{PLANTBOOK_BASE}/plant/detail/{pid}/",
+            params={"include": "care"},
             headers=await _auth_header(),
         )
         if resp.status_code == 404:
             return None
+        if not resp.is_success:
+            logger.error(
+                "PlantBook detail failed: HTTP %s for pid %r — %s",
+                resp.status_code, pid, resp.text[:300],
+            )
         resp.raise_for_status()
 
     data = resp.json()
