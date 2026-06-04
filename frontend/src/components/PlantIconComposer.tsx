@@ -44,6 +44,19 @@ interface PlantIconComposerProps {
 
 type Section = 'base' | 'variegation' | 'bloom';
 
+// Shared tile button style factory
+function tileStyle(sel: boolean): React.CSSProperties {
+  return {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    gap: 4, padding: '7px 4px 6px', borderRadius: 10, cursor: 'pointer',
+    border: sel ? `2px solid ${T.fern}` : `1.5px solid ${T.stone200}`,
+    background: sel ? T.linen : T.card,
+    transition: 'all .14s',
+  };
+}
+
+import type React from 'react';
+
 export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
   const [open, setOpen] = useState<Section>('base');
 
@@ -51,16 +64,11 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
   const currentVar = value?.variegation ?? null;
   const currentBloom = value?.bloom ?? null;
 
-  const setBase = (b: BaseKey) => {
+  const setBase = (b: BaseKey) =>
     onChange({ ...(value ?? { base: b }), base: b });
-  };
 
   const setVarPattern = (p: VarPattern | null) => {
-    if (p === null) {
-      const next = { ...(value ?? { base: currentBase }), variegation: null };
-      onChange(next);
-      return;
-    }
+    if (p === null) { onChange({ ...(value ?? { base: currentBase }), variegation: null }); return; }
     const color = currentVar?.color ?? VAR_COLORS[1];
     onChange({ ...(value ?? { base: currentBase }), variegation: { pattern: p, color } });
   };
@@ -71,10 +79,7 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
   };
 
   const setBloomHead = (h: HeadKey | null) => {
-    if (h === null) {
-      onChange({ ...(value ?? { base: currentBase }), bloom: null });
-      return;
-    }
+    if (h === null) { onChange({ ...(value ?? { base: currentBase }), bloom: null }); return; }
     const petal: BloomToken = (currentBloom && 'head' in currentBloom) ? currentBloom.petal : 'amber';
     onChange({ ...(value ?? { base: currentBase }), bloom: { head: h, petal } });
   };
@@ -86,96 +91,120 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
 
   const toggle = (s: Section) => setOpen(prev => prev === s ? 'base' : s);
 
+  const currentBloomHead = (currentBloom && 'head' in currentBloom) ? currentBloom.head : null;
+  const currentBloomPetal: BloomToken = (currentBloom && 'head' in currentBloom) ? currentBloom.petal : 'amber';
+
+  // Build summary modifiers for the preview caption
+  const modifiers: string[] = [];
+  if (currentVar) modifiers.push(`${VAR_PATTERNS.find(p => p.value === currentVar.pattern)?.label} var.`);
+  if (currentBloomHead) modifiers.push(`${HEAD_LABELS[currentBloomHead]} bloom`);
+
   const sectionHeader = (s: Section, label: string, chip?: string) => (
     <button
       type="button"
       onClick={() => toggle(s)}
       style={{
         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'none', border: 'none', cursor: 'pointer', padding: '11px 0 9px',
+        background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0 8px',
         borderTop: `1px solid ${T.stone100}`,
       }}
     >
-      <span style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 700, color: T.ink2, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+      <span style={{
+        fontFamily: T.sans, fontSize: 11, fontWeight: 700, color: T.ink3,
+        textTransform: 'uppercase', letterSpacing: '.07em',
+      }}>
         {label}
       </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         {chip && (
-          <span style={{ fontFamily: T.sans, fontSize: 12, fontWeight: 600, color: T.fern, background: T.linen, borderRadius: 999, padding: '3px 9px' }}>
+          <span style={{
+            fontFamily: T.sans, fontSize: 11.5, fontWeight: 600, color: T.fern,
+            background: T.linen, borderRadius: 999, padding: '3px 9px',
+            maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
             {chip}
           </span>
         )}
-        <Icon name={open === s ? 'chevronUp' : 'chevronDown'} size={15} color={T.ink3} stroke={2} />
+        <Icon name={open === s ? 'chevronUp' : 'chevronDown'} size={14} color={T.ink3} stroke={2} />
       </div>
     </button>
   );
 
-  const currentBloomHead = (currentBloom && 'head' in currentBloom) ? currentBloom.head : null;
-  const currentBloomPetal: BloomToken = (currentBloom && 'head' in currentBloom) ? currentBloom.petal : 'amber';
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      {/* Live preview */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 14px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+
+      {/* ── Live preview ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '8px 0 14px' }}>
         <div style={{
-          width: 96, height: 96, borderRadius: 18,
+          width: 80, height: 80, borderRadius: 16, flexShrink: 0,
           background: `linear-gradient(150deg, ${T.sprout}, ${T.sproutDeep})`,
           display: 'grid', placeItems: 'center',
         }}>
-          <PlantIcon recipe={value ?? { base: currentBase }} size={72} />
+          <PlantIcon recipe={value ?? { base: currentBase }} size={62} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+          <span style={{ fontFamily: T.display, fontSize: 15, fontWeight: 700, color: T.ink, letterSpacing: '-0.01em' }}>
+            {BASE_LABELS[currentBase]}
+          </span>
+          {modifiers.length > 0 ? (
+            <span style={{ fontFamily: T.sans, fontSize: 12, color: T.ink3 }}>
+              {modifiers.join(' · ')}
+            </span>
+          ) : (
+            <span style={{ fontFamily: T.sans, fontSize: 12, color: T.stone300, fontStyle: 'italic' }}>
+              No variegation or bloom
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Base section */}
+      {/* ── Base shape ── */}
       {sectionHeader('base', 'Base shape', BASE_LABELS[currentBase])}
       {open === 'base' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, paddingBottom: 12 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+          gap: 4, paddingBottom: 12,
+        }}>
           {ALL_BASES.map(b => {
             const sel = b === currentBase;
             return (
               <button
                 key={b}
                 type="button"
+                title={BASE_LABELS[b]}
                 onClick={() => setBase(b)}
                 style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                  padding: '8px 4px 7px', borderRadius: 12,
-                  border: sel ? `2px solid ${T.fern}` : `1.5px solid ${T.stone200}`,
-                  background: sel ? T.linen : T.card,
-                  cursor: 'pointer', transition: 'all .14s',
+                  ...tileStyle(sel),
+                  aspectRatio: '1',
+                  padding: 4,
                 }}
                 onMouseEnter={e => { if (!sel) e.currentTarget.style.background = T.linen; }}
                 onMouseLeave={e => { if (!sel) e.currentTarget.style.background = T.card; }}
               >
-                <PlantIcon recipe={{ base: b }} size={38} />
-                <span style={{ fontFamily: T.sans, fontSize: 9.5, fontWeight: 600, color: sel ? T.fern : T.ink3, textAlign: 'center', lineHeight: 1.2 }}>
-                  {BASE_LABELS[b]}
-                </span>
+                <PlantIcon recipe={{ base: b }} size={32} />
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Variegation section */}
-      {sectionHeader('variegation', 'Variegation', currentVar ? VAR_PATTERNS.find(p => p.value === currentVar.pattern)?.label : undefined)}
+      {/* ── Variegation ── */}
+      {sectionHeader('variegation', 'Variegation', currentVar
+        ? VAR_PATTERNS.find(p => p.value === currentVar.pattern)?.label
+        : undefined)}
       {open === 'variegation' && (
         <div style={{ paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 4 }}>
+            {/* None */}
             <button
               type="button"
               onClick={() => setVarPattern(null)}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                padding: '8px 4px 7px', borderRadius: 12,
-                border: !currentVar ? `2px solid ${T.fern}` : `1.5px solid ${T.stone200}`,
-                background: !currentVar ? T.linen : T.card,
-                cursor: 'pointer', transition: 'all .14s', gridColumn: 'span 1',
-              }}
+              style={tileStyle(!currentVar)}
               onMouseEnter={e => { if (currentVar) e.currentTarget.style.background = T.linen; }}
               onMouseLeave={e => { if (currentVar) e.currentTarget.style.background = T.card; }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>—</span>
+              <span style={{ fontSize: 16, lineHeight: 1, color: T.ink3 }}>—</span>
               <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: !currentVar ? T.fern : T.ink3 }}>None</span>
             </button>
             {VAR_PATTERNS.map(p => {
@@ -185,18 +214,17 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
                   key={p.value}
                   type="button"
                   onClick={() => setVarPattern(p.value)}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    padding: '8px 4px 7px', borderRadius: 12,
-                    border: sel ? `2px solid ${T.fern}` : `1.5px solid ${T.stone200}`,
-                    background: sel ? T.linen : T.card,
-                    cursor: 'pointer', transition: 'all .14s',
-                  }}
+                  style={tileStyle(sel)}
                   onMouseEnter={e => { if (!sel) e.currentTarget.style.background = T.linen; }}
                   onMouseLeave={e => { if (!sel) e.currentTarget.style.background = T.card; }}
                 >
-                  <PlantIcon recipe={{ base: currentBase, variegation: { pattern: p.value, color: currentVar?.color ?? '#FFFFFF' } }} size={38} />
-                  <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: sel ? T.fern : T.ink3 }}>{p.label}</span>
+                  <PlantIcon
+                    recipe={{ base: currentBase, variegation: { pattern: p.value, color: currentVar?.color ?? '#F4ECDA' } }}
+                    size={34}
+                  />
+                  <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: sel ? T.fern : T.ink3 }}>
+                    {p.label}
+                  </span>
                 </button>
               );
             })}
@@ -204,8 +232,10 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
 
           {currentVar && (
             <div>
-              <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, marginBottom: 6 }}>Marking colour</div>
-              <div style={{ display: 'flex', gap: 7 }}>
+              <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, marginBottom: 8 }}>
+                Marking colour
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
                 {VAR_COLORS.map((col, i) => {
                   const sel = currentVar.color === col;
                   return (
@@ -215,10 +245,10 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
                       title={VAR_COLOR_LABELS[i]}
                       onClick={() => setVarColor(col)}
                       style={{
-                        width: 30, height: 30, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                        width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: 'pointer',
                         background: col, flexShrink: 0,
                         boxShadow: sel
-                          ? `0 0 0 2px ${T.fern}, 0 0 0 4px ${T.paper}`
+                          ? `0 0 0 2.5px ${T.fern}, 0 0 0 4.5px ${T.paper}`
                           : `0 0 0 1.5px ${T.stone200}`,
                         transition: 'box-shadow .14s',
                       }}
@@ -231,49 +261,34 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
         </div>
       )}
 
-      {/* Bloom section */}
+      {/* ── Bloom ── */}
       {sectionHeader('bloom', 'Bloom', currentBloomHead ? HEAD_LABELS[currentBloomHead] : undefined)}
       {open === 'bloom' && (
         <div style={{ paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4 }}>
+            {/* None */}
             <button
               type="button"
               onClick={() => setBloomHead(null)}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                padding: '8px 4px 7px', borderRadius: 12,
-                border: !currentBloomHead ? `2px solid ${T.fern}` : `1.5px solid ${T.stone200}`,
-                background: !currentBloomHead ? T.linen : T.card,
-                cursor: 'pointer', transition: 'all .14s',
-              }}
+              style={tileStyle(!currentBloomHead)}
               onMouseEnter={e => { if (currentBloomHead) e.currentTarget.style.background = T.linen; }}
               onMouseLeave={e => { if (currentBloomHead) e.currentTarget.style.background = T.card; }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1, marginBottom: 2 }}>—</span>
+              <span style={{ fontSize: 16, lineHeight: 1, color: T.ink3, marginBottom: 2 }}>—</span>
               <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: !currentBloomHead ? T.fern : T.ink3 }}>None</span>
             </button>
             {ALL_HEADS.map(h => {
               const sel = currentBloomHead === h;
-              const recipe: IconRecipe = {
-                base: currentBase,
-                bloom: { head: h, petal: currentBloomPetal },
-              };
               return (
                 <button
                   key={h}
                   type="button"
                   onClick={() => setBloomHead(h)}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    padding: '8px 4px 7px', borderRadius: 12,
-                    border: sel ? `2px solid ${T.fern}` : `1.5px solid ${T.stone200}`,
-                    background: sel ? T.linen : T.card,
-                    cursor: 'pointer', transition: 'all .14s',
-                  }}
+                  style={tileStyle(sel)}
                   onMouseEnter={e => { if (!sel) e.currentTarget.style.background = T.linen; }}
                   onMouseLeave={e => { if (!sel) e.currentTarget.style.background = T.card; }}
                 >
-                  <PlantIcon recipe={recipe} size={38} />
+                  <PlantIcon recipe={{ base: currentBase, bloom: { head: h, petal: currentBloomPetal } }} size={34} />
                   <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: sel ? T.fern : T.ink3 }}>
                     {HEAD_LABELS[h]}
                   </span>
@@ -284,11 +299,12 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
 
           {currentBloomHead && (
             <div>
-              <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, marginBottom: 6 }}>Petal colour</div>
-              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+              <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, marginBottom: 8 }}>
+                Petal colour
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {ALL_BLOOM_TOKENS.map(token => {
                   const sel = currentBloomPetal === token;
-                  const col = BLOOM_COLORS[token];
                   return (
                     <button
                       key={token}
@@ -296,10 +312,10 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
                       title={BLOOM_TOKEN_LABELS[token]}
                       onClick={() => setBloomPetal(token)}
                       style={{
-                        width: 30, height: 30, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                        background: col, flexShrink: 0,
+                        width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                        background: BLOOM_COLORS[token], flexShrink: 0,
                         boxShadow: sel
-                          ? `0 0 0 2px ${T.fern}, 0 0 0 4px ${T.paper}`
+                          ? `0 0 0 2.5px ${T.fern}, 0 0 0 4.5px ${T.paper}`
                           : `0 0 0 1.5px ${T.stone200}`,
                         transition: 'box-shadow .14s',
                       }}
