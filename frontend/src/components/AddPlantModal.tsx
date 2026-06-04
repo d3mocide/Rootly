@@ -4,7 +4,7 @@ import { Button, Icon } from './index';
 import { PlantIconComposer } from './PlantIconComposer';
 import type { Plant, IconRecipe } from '../types/plant';
 import type { Area } from '../types/area';
-import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery } from '../api/plantbook';
+import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery, suggestIconFromSpecies } from '../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../api/plantbook';
 
 interface AddPlantModalProps {
@@ -83,6 +83,15 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
       const profile = await getPlantbookDetail(result.pid);
       setSelectedProfile(profile);
       if (!overrideEvery) setEvery(suggestEvery(profile.min_soil_moist));
+      const suggestion = suggestIconFromSpecies(result.display_name, result.alias ?? '');
+      if (suggestion.base || suggestion.bloom) {
+        setIcon(prev => ({
+          base: suggestion.base ?? (prev?.base ?? 'fenestrated-tropical'),
+          variegation: prev?.variegation,
+          bloom: suggestion.bloom ?? prev?.bloom,
+          palette: prev?.palette,
+        }));
+      }
     } catch {
       // Profile fetch failed — fall back to manual entry
     } finally {
@@ -295,7 +304,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
 
             <div>
               <label style={labelStyle}>Icon</label>
-              <PlantIconComposer value={icon} onChange={setIcon} />
+              <PlantIconComposer value={icon} onChange={setIcon} plantName={name || undefined} />
             </div>
             <div>
               <label style={labelStyle}>Room</label>

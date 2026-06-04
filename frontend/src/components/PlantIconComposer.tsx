@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type React from 'react';
 import { T } from '../tokens';
 import { Icon } from './Icon';
 import { PlantIcon } from './PlantIcon';
@@ -37,14 +38,24 @@ const VAR_PATTERNS: { value: VarPattern; label: string }[] = [
 const VAR_COLORS = ['#FFFFFF', '#F4ECDA', '#E5D888', '#F0CDB8', '#C2DA9E'];
 const VAR_COLOR_LABELS = ['White', 'Cream', 'Gold', 'Blush', 'Lime'];
 
+// Leaf palette presets — swatch is the mid-tone leaf2 color
+const PALETTE_PRESETS: { label: string; swatch: string; value: IconRecipe['palette'] }[] = [
+  { label: 'Default', swatch: '#3A7D55', value: undefined },
+  { label: 'Forest',  swatch: '#1E5C38', value: { leaf1: '#1A4D30', leaf2: '#1E5C38', leaf3: '#2E7A4E', stem: '#1E5C38', vein: '#C8E0CE' } },
+  { label: 'Sage',    swatch: '#7A9B80', value: { leaf1: '#5C7A62', leaf2: '#7A9B80', leaf3: '#9EBD9F', stem: '#7A9B80', vein: '#E5F0E6' } },
+  { label: 'Teal',    swatch: '#2A7D8A', value: { leaf1: '#1A5C6A', leaf2: '#2A7D8A', leaf3: '#4AA0AA', stem: '#2A7D8A', vein: '#D4EFF4', potBody: '#5A7E8A', potRim: '#4A6E7A' } },
+  { label: 'Olive',   swatch: '#7A8C3A', value: { leaf1: '#5A6B2A', leaf2: '#7A8C3A', leaf3: '#9EAD5A', stem: '#7A8C3A', vein: '#EAF0C0', potBody: '#9E8A5A', potRim: '#8A7A4A' } },
+  { label: 'Noir',    swatch: '#252D28', value: { leaf1: '#1A1F1C', leaf2: '#252D28', leaf3: '#354038', stem: '#252D28', vein: '#C0D4C4', potBody: '#3A3530', potRim: '#2A2520' } },
+];
+
 interface PlantIconComposerProps {
   value: IconRecipe | undefined;
   onChange: (v: IconRecipe | undefined) => void;
+  plantName?: string;
 }
 
-type Section = 'base' | 'variegation' | 'bloom';
+type Section = 'base' | 'variegation' | 'bloom' | 'palette';
 
-// Shared tile button style factory
 function tileStyle(sel: boolean): React.CSSProperties {
   return {
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -55,14 +66,30 @@ function tileStyle(sel: boolean): React.CSSProperties {
   };
 }
 
-import type React from 'react';
+function animWrap(open: boolean): React.CSSProperties {
+  return {
+    overflow: 'hidden',
+    maxHeight: open ? '800px' : '0',
+    transition: `max-height ${open ? '.3s' : '.2s'} cubic-bezier(.22,.61,.36,1)`,
+  };
+}
 
-export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
+export function PlantIconComposer({ value, onChange, plantName }: PlantIconComposerProps) {
   const [open, setOpen] = useState<Section>('base');
 
   const currentBase: BaseKey = value?.base ?? 'fenestrated-tropical';
   const currentVar = value?.variegation ?? null;
   const currentBloom = value?.bloom ?? null;
+  const currentPalette = value?.palette;
+
+  const currentBloomHead = (currentBloom && 'head' in currentBloom) ? currentBloom.head : null;
+  const currentBloomPetal: BloomToken = (currentBloom && 'head' in currentBloom) ? currentBloom.petal : 'amber';
+
+  const currentPaletteLabel = (() => {
+    if (!currentPalette) return 'Default';
+    const match = PALETTE_PRESETS.find(p => p.value && p.value.leaf2 === currentPalette.leaf2);
+    return match?.label ?? 'Custom';
+  })();
 
   const setBase = (b: BaseKey) =>
     onChange({ ...(value ?? { base: b }), base: b });
@@ -80,7 +107,7 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
 
   const setBloomHead = (h: HeadKey | null) => {
     if (h === null) { onChange({ ...(value ?? { base: currentBase }), bloom: null }); return; }
-    const petal: BloomToken = (currentBloom && 'head' in currentBloom) ? currentBloom.petal : 'amber';
+    const petal: BloomToken = currentBloomPetal;
     onChange({ ...(value ?? { base: currentBase }), bloom: { head: h, petal } });
   };
 
@@ -89,15 +116,38 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
     onChange({ ...(value ?? { base: currentBase }), bloom: { ...currentBloom, petal } });
   };
 
+  const setPalette = (preset: typeof PALETTE_PRESETS[number]) => {
+    const next = { ...(value ?? { base: currentBase }) };
+    if (preset.value === undefined) {
+      delete next.palette;
+    } else {
+      next.palette = preset.value;
+    }
+    onChange(next);
+  };
+
+  const randomize = () => {
+    const base = ALL_BASES[Math.floor(Math.random() * ALL_BASES.length)];
+    const addVar = Math.random() < 0.4;
+    const addBloom = Math.random() < 0.45;
+    const variegation = addVar ? {
+      pattern: VAR_PATTERNS[Math.floor(Math.random() * VAR_PATTERNS.length)].value,
+      color: VAR_COLORS[Math.floor(Math.random() * VAR_COLORS.length)],
+    } : null;
+    const bloom = addBloom ? {
+      head: ALL_HEADS[Math.floor(Math.random() * ALL_HEADS.length)],
+      petal: ALL_BLOOM_TOKENS[Math.floor(Math.random() * ALL_BLOOM_TOKENS.length)],
+    } : null;
+    onChange({ base, variegation, bloom });
+  };
+
   const toggle = (s: Section) => setOpen(prev => prev === s ? 'base' : s);
 
-  const currentBloomHead = (currentBloom && 'head' in currentBloom) ? currentBloom.head : null;
-  const currentBloomPetal: BloomToken = (currentBloom && 'head' in currentBloom) ? currentBloom.petal : 'amber';
-
-  // Build summary modifiers for the preview caption
+  // Summary modifiers for preview caption
   const modifiers: string[] = [];
   if (currentVar) modifiers.push(`${VAR_PATTERNS.find(p => p.value === currentVar.pattern)?.label} var.`);
   if (currentBloomHead) modifiers.push(`${HEAD_LABELS[currentBloomHead]} bloom`);
+  if (currentPaletteLabel !== 'Default') modifiers.push(`${currentPaletteLabel} palette`);
 
   const sectionHeader = (s: Section, label: string, chip?: string) => (
     <button
@@ -133,34 +183,51 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Live preview ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '8px 0 14px' }}>
+      {/* ── Mini card preview + Randomize ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px 10px',
+        background: T.card, borderRadius: 16, border: `1.5px solid ${T.stone100}`,
+        marginBottom: 6,
+      }}>
         <div style={{
-          width: 80, height: 80, borderRadius: 16, flexShrink: 0,
+          width: 62, height: 62, borderRadius: 13, flexShrink: 0,
           background: `linear-gradient(150deg, ${T.sprout}, ${T.sproutDeep})`,
           display: 'grid', placeItems: 'center',
         }}>
-          <PlantIcon recipe={value ?? { base: currentBase }} size={62} />
+          <PlantIcon recipe={value ?? { base: currentBase }} size={48} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-          <span style={{ fontFamily: T.display, fontSize: 15, fontWeight: 700, color: T.ink, letterSpacing: '-0.01em' }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontFamily: T.display, fontSize: 14, fontWeight: 700, color: T.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+            {plantName || 'My Plant'}
+          </span>
+          <span style={{ fontFamily: T.sans, fontSize: 12, color: T.ink2, fontWeight: 500 }}>
             {BASE_LABELS[currentBase]}
           </span>
-          {modifiers.length > 0 ? (
-            <span style={{ fontFamily: T.sans, fontSize: 12, color: T.ink3 }}>
+          {modifiers.length > 0 && (
+            <span style={{ fontFamily: T.sans, fontSize: 11, color: T.fern, fontWeight: 600, marginTop: 1 }}>
               {modifiers.join(' · ')}
-            </span>
-          ) : (
-            <span style={{ fontFamily: T.sans, fontSize: 12, color: T.stone300, fontStyle: 'italic' }}>
-              No variegation or bloom
             </span>
           )}
         </div>
+        <button
+          type="button"
+          onClick={randomize}
+          title="Randomize icon"
+          style={{
+            width: 36, height: 36, borderRadius: '50%', border: `1.5px solid ${T.stone200}`,
+            background: T.paper, cursor: 'pointer', display: 'grid', placeItems: 'center',
+            flexShrink: 0, transition: 'all .14s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = T.linen; e.currentTarget.style.borderColor = T.fern; }}
+          onMouseLeave={e => { e.currentTarget.style.background = T.paper; e.currentTarget.style.borderColor = T.stone200; }}
+        >
+          <Icon name="shuffle" size={15} color={T.ink3} stroke={2} />
+        </button>
       </div>
 
       {/* ── Base shape ── */}
       {sectionHeader('base', 'Base shape', BASE_LABELS[currentBase])}
-      {open === 'base' && (
+      <div style={animWrap(open === 'base')}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
@@ -174,11 +241,7 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
                 type="button"
                 title={BASE_LABELS[b]}
                 onClick={() => setBase(b)}
-                style={{
-                  ...tileStyle(sel),
-                  aspectRatio: '1',
-                  padding: 4,
-                }}
+                style={{ ...tileStyle(sel), aspectRatio: '1', padding: 4 }}
                 onMouseEnter={e => { if (!sel) e.currentTarget.style.background = T.linen; }}
                 onMouseLeave={e => { if (!sel) e.currentTarget.style.background = T.card; }}
               >
@@ -187,16 +250,15 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
             );
           })}
         </div>
-      )}
+      </div>
 
       {/* ── Variegation ── */}
       {sectionHeader('variegation', 'Variegation', currentVar
         ? VAR_PATTERNS.find(p => p.value === currentVar.pattern)?.label
         : undefined)}
-      {open === 'variegation' && (
+      <div style={animWrap(open === 'variegation')}>
         <div style={{ paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 4 }}>
-            {/* None */}
             <button
               type="button"
               onClick={() => setVarPattern(null)}
@@ -259,14 +321,13 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* ── Bloom ── */}
       {sectionHeader('bloom', 'Bloom', currentBloomHead ? HEAD_LABELS[currentBloomHead] : undefined)}
-      {open === 'bloom' && (
+      <div style={animWrap(open === 'bloom')}>
         <div style={{ paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4 }}>
-            {/* None */}
             <button
               type="button"
               onClick={() => setBloomHead(null)}
@@ -326,7 +387,46 @@ export function PlantIconComposer({ value, onChange }: PlantIconComposerProps) {
             </div>
           )}
         </div>
-      )}
+      </div>
+
+      {/* ── Leaf palette ── */}
+      {sectionHeader('palette', 'Leaf palette', currentPaletteLabel !== 'Default' ? currentPaletteLabel : undefined)}
+      <div style={animWrap(open === 'palette')}>
+        <div style={{ paddingBottom: 14 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {PALETTE_PRESETS.map(preset => {
+              const sel = currentPaletteLabel === preset.label;
+              return (
+                <button
+                  key={preset.label}
+                  type="button"
+                  title={preset.label}
+                  onClick={() => setPalette(preset)}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  }}
+                >
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: preset.swatch,
+                    boxShadow: sel
+                      ? `0 0 0 2.5px ${T.fern}, 0 0 0 4.5px ${T.paper}`
+                      : `0 0 0 1.5px ${T.stone200}`,
+                    transition: 'box-shadow .14s',
+                  }} />
+                  <span style={{
+                    fontFamily: T.sans, fontSize: 10, fontWeight: 600,
+                    color: sel ? T.fern : T.ink3,
+                  }}>
+                    {preset.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

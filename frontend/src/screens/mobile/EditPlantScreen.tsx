@@ -134,7 +134,7 @@ export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
 
         <div>
           <label style={labelStyle}>Icon</label>
-          <PlantIconComposer value={icon} onChange={setIcon} />
+          <PlantIconComposer value={icon} onChange={setIcon} plantName={name || undefined} />
         </div>
 
         <div>

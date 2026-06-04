@@ -177,7 +177,7 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
 
             <div>
               <label style={labelStyle}>Icon</label>
-              <PlantIconComposer value={icon} onChange={setIcon} />
+              <PlantIconComposer value={icon} onChange={setIcon} plantName={name || undefined} />
             </div>
             <div>
               <label style={labelStyle}>Room</label>
