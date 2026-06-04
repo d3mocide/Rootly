@@ -49,7 +49,7 @@ export async function apiWaterPlant(id: string): Promise<Plant> {
 }
 
 export async function apiCreatePlant(plant: Omit<Plant, 'id'>): Promise<Plant> {
-  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt, ...rest } = plant;
+  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt: _createdAt, ...rest } = plant;
   return fromApi(
     await apiFetch('/plants', {
       method: 'POST',
@@ -70,7 +70,7 @@ export async function apiCreatePlant(plant: Omit<Plant, 'id'>): Promise<Plant> {
 }
 
 export async function apiUpdatePlant(id: string, updates: Partial<Plant>): Promise<Plant> {
-  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt, ...rest } = updates;
+  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt: _createdAt, ...rest } = updates;
   return fromApi(
     await apiFetch(`/plants/${id}`, {
       method: 'PUT',

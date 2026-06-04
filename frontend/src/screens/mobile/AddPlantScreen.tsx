@@ -32,7 +32,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const searchRef = useRef<HTMLDivElement>(null);
   const justSelectedRef = useRef(false);
 
@@ -41,13 +41,8 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
       justSelectedRef.current = false;
       return;
     }
-    if (speciesQuery.length < 2) {
-      setSearchResults([]);
-      setShowDropdown(false);
-      return;
-    }
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
+    if (speciesQuery.length < 2) return;
+    const timer = setTimeout(async () => {
       setSearchLoading(true);
       try {
         const results = await searchPlantbook(speciesQuery);
@@ -59,7 +54,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
         setSearchLoading(false);
       }
     }, 400);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => clearTimeout(timer);
   }, [speciesQuery]);
 
   useEffect(() => {
@@ -185,7 +180,12 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
             <input
               type="text"
               value={speciesQuery}
-              onChange={e => { setSpeciesQuery(e.target.value); if (selectedProfile) setSelectedProfile(null); }}
+              onChange={e => {
+                const q = e.target.value;
+                setSpeciesQuery(q);
+                if (selectedProfile) setSelectedProfile(null);
+                if (q.length < 2) { setSearchResults([]); setShowDropdown(false); }
+              }}
               placeholder="Search e.g. Monstera deliciosa…"
               style={{ ...inputStyle, paddingRight: 42 }}
               onFocus={e => { e.currentTarget.style.borderColor = T.fern; if (searchResults.length > 0) setShowDropdown(true); }}
