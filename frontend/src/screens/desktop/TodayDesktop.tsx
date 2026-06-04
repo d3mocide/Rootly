@@ -143,7 +143,7 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll, currentUser 
                 upcoming.map(({ plant }, i) => (
                   <div key={plant.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderTop: i ? `1px solid ${T.stone100}` : 'none' }}>
                     <div style={{ width: 38, height: 38, borderRadius: 10, background: T.sprout, display: 'grid', placeItems: 'center' }}>
-                      <PlantArt kind={plant.kind} size={30} />
+                      <PlantArt icon={plant.icon} size={30} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: T.sans, fontSize: 14.5, fontWeight: 600, color: T.ink }}>{plant.name}</div>

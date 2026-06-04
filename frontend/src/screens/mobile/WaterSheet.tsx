@@ -21,7 +21,7 @@ export function WaterSheet({ plant, onConfirm, onClose }: Props) {
         <div style={{ width: 40, height: 5, borderRadius: 99, background: T.stone300, margin: '0 auto 18px' }} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ width: 84, height: 84, borderRadius: '50%', background: T.sprout, display: 'grid', placeItems: 'center' }}>
-            <PlantArt kind={plant.kind} size={64} />
+            <PlantArt icon={plant.icon} size={64} />
           </div>
           <h2 style={{ margin: '14px 0 0', fontFamily: T.display, fontWeight: 700, fontSize: 22, color: T.ink, letterSpacing: '-0.02em' }}>
             Water {plant.name}?

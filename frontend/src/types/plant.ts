@@ -1,12 +1,64 @@
 export type PlantStatus = 'dry' | 'soon' | 'thriving' | 'watered' | 'resting';
 
-export type PlantKind = 'monstera' | 'fig' | 'pothos' | 'snake' | 'succulent';
+export type BaseKey =
+  | 'fenestrated-tropical'
+  | 'single-trunk-tree'
+  | 'upright-sword'
+  | 'trailing-vine'
+  | 'rosette-succulent'
+  | 'strappy-arching'
+  | 'palm-frond'
+  | 'feathery-fern'
+  | 'cactus'
+  | 'big-paddle'
+  | 'patterned-broadleaf'
+  | 'paddle-succulent'
+  | 'cactus-pad'
+  | 'beaded-strand';
+
+export type HeadKey =
+  | 'daisy'
+  | 'iris'
+  | 'orchid'
+  | 'lily'
+  | 'cluster'
+  | 'spike'
+  | 'poppy'
+  | 'rose'
+  | 'tulip'
+  | 'bell';
+
+export type BloomToken = 'amber' | 'coral' | 'rose' | 'magenta' | 'lilac' | 'sky' | 'cream';
+
+export type VarPattern = 'speckle' | 'marble' | 'margin' | 'center';
+
+export type IconRecipe = {
+  base: BaseKey;
+  palette?: {
+    leaf1?: string; leaf2?: string; leaf3?: string;
+    stem?: string;  vein?: string;
+    potBody?: string; potRim?: string;
+  };
+  variegation?: {
+    pattern: VarPattern;
+    color: string;
+  } | null;
+  bloom?:
+    | { dot: 'sun' }
+    | {
+        head: HeadKey;
+        petal: BloomToken;
+        center?: BloomToken | null;
+        accent?: BloomToken | null;
+      }
+    | null;
+};
 
 export interface Plant {
   id: string;
   name: string;
   species: string;
-  kind?: PlantKind;
+  icon?: IconRecipe;
   room: string;
   moisture: number;
   status: PlantStatus;

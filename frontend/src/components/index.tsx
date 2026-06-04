@@ -4,6 +4,7 @@ import { PlantArt } from './PlantArt';
 import type { Plant, PlantStatus } from '../types/plant';
 import { STATUS_META } from '../types/plant';
 import { T } from '../tokens';
+import '../styles/plant-icon.css';
 
 // ---- Button -------------------------------------------------------
 interface ButtonProps {
@@ -160,7 +161,7 @@ export function PlantCard({ plant, onClick }: { plant: Plant; onClick: () => voi
       }}
     >
       <div style={{ height: 96, background: `linear-gradient(150deg, ${T.sprout}, ${T.sproutDeep})`, display: 'grid', placeItems: 'center' }}>
-        <PlantArt kind={plant.kind} size={66} />
+        <PlantArt icon={plant.icon} size={66} />
       </div>
       <div style={{ padding: '12px 14px 14px' }}>
         <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, color: T.ink, letterSpacing: '-0.02em' }}>{plant.name}</div>
@@ -222,7 +223,7 @@ export function PlantRow({ plant, onClick, onWater, last }: PlantRowProps) {
       }}
     >
       <div style={{ width: 46, height: 46, borderRadius: '50%', background: T.sprout, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-        <PlantArt kind={plant.kind} size={36} />
+        <PlantArt icon={plant.icon} size={36} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15.5, fontWeight: 600, color: T.ink }}>{plant.name}</div>
@@ -309,6 +310,8 @@ export function Toast({ message }: { message: string }) {
 // ---- Re-exports -------------------------------------------------
 export { Icon, RootlyMark } from './Icon';
 export { PlantArt } from './PlantArt';
+export { PlantIcon } from './PlantIcon';
+export { PlantIconComposer } from './PlantIconComposer';
 export { KindPicker } from './KindPicker';
 export { SettingsModal } from './SettingsModal';
 export { AddPlantModal } from './AddPlantModal';

@@ -1,11 +1,11 @@
 import { apiFetch } from './client';
-import type { Plant } from '../types/plant';
+import type { Plant, IconRecipe } from '../types/plant';
 
 interface ApiPlant {
   id: string;
   name: string;
   species: string;
-  kind: Plant['kind'];
+  icon: IconRecipe | null;
   room: string;
   moisture: number;
   status: Plant['status'];
@@ -26,6 +26,7 @@ interface ApiPlant {
 
 const fromApi = (p: ApiPlant): Plant => ({
   ...p,
+  icon: p.icon ?? undefined,
   moisture: Math.round(p.moisture * 100),
   lastWater: p.last_water ?? '',
   createdAt: p.created_at,
@@ -48,7 +49,7 @@ export async function apiWaterPlant(id: string): Promise<Plant> {
 }
 
 export async function apiCreatePlant(plant: Omit<Plant, 'id'>): Promise<Plant> {
-  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt, ...rest } = plant;
+  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt: _createdAt, ...rest } = plant;
   return fromApi(
     await apiFetch('/plants', {
       method: 'POST',
@@ -69,7 +70,7 @@ export async function apiCreatePlant(plant: Omit<Plant, 'id'>): Promise<Plant> {
 }
 
 export async function apiUpdatePlant(id: string, updates: Partial<Plant>): Promise<Plant> {
-  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt, ...rest } = updates;
+  const { lastWater, moisture, plantbookPid, minLightLux, maxLightLux, minTemp, maxTemp, minEnvHumid, maxEnvHumid, createdAt: _createdAt, ...rest } = updates;
   return fromApi(
     await apiFetch(`/plants/${id}`, {
       method: 'PUT',

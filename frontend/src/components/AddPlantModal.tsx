@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { T } from '../tokens';
-import { Button, Icon, KindPicker } from './index';
-import type { Plant } from '../types/plant';
+import { Button, Icon } from './index';
+import { PlantIconComposer } from './PlantIconComposer';
+import type { Plant, IconRecipe } from '../types/plant';
 import type { Area } from '../types/area';
-import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery } from '../api/plantbook';
+import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery, suggestIconFromSpecies } from '../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../api/plantbook';
 
 interface AddPlantModalProps {
@@ -27,12 +28,12 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
   const [selectedProfile, setSelectedProfile] = useState<PlantProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  const [kind, setKind] = useState<Plant['kind'] | undefined>(undefined);
+  const [icon, setIcon] = useState<IconRecipe | undefined>(undefined);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const searchRef = useRef<HTMLDivElement>(null);
   const justSelectedRef = useRef(false);
 
@@ -41,13 +42,8 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
       justSelectedRef.current = false;
       return;
     }
-    if (speciesQuery.length < 3) {
-      setSearchResults([]);
-      setShowDropdown(false);
-      return;
-    }
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
+    if (speciesQuery.length < 3) return;
+    const timer = setTimeout(async () => {
       setSearchLoading(true);
       try {
         const results = await searchPlantbook(speciesQuery);
@@ -59,7 +55,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
         setSearchLoading(false);
       }
     }, 400);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => clearTimeout(timer);
   }, [speciesQuery]);
 
   useEffect(() => {
@@ -82,6 +78,15 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
       const profile = await getPlantbookDetail(result.pid);
       setSelectedProfile(profile);
       if (!overrideEvery) setEvery(suggestEvery(profile.min_soil_moist));
+      const suggestion = suggestIconFromSpecies(result.display_name, result.alias ?? '');
+      if (suggestion.base || suggestion.bloom) {
+        setIcon(prev => ({
+          base: suggestion.base ?? (prev?.base ?? 'fenestrated-tropical'),
+          variegation: prev?.variegation,
+          bloom: suggestion.bloom ?? prev?.bloom,
+          palette: prev?.palette,
+        }));
+      }
     } catch {
       // Profile fetch failed — fall back to manual entry
     } finally {
@@ -109,7 +114,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
       await onAdd({
         name: name.trim(),
         species: selectedProfile ? selectedProfile.display_name : speciesQuery.trim(),
-        kind: kind,
+        icon: icon,
         room: room.trim() || (areas[0] ? areas[0].name : ''),
         every: Number(every) || 7,
         light: selectedProfile ? (luxToLabel(selectedProfile.min_light_lux, selectedProfile.max_light_lux) || '') : '',
@@ -127,7 +132,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
         maxEnvHumid: selectedProfile?.max_env_humid,
       });
       setName(''); setRoom(''); setNote(''); setEvery(7);
-      setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false); setKind(undefined);
+      setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false); setIcon(undefined);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to add plant.');
@@ -201,7 +206,12 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
                 <input
                   type="text"
                   value={speciesQuery}
-                  onChange={e => { setSpeciesQuery(e.target.value); if (selectedProfile) setSelectedProfile(null); }}
+                  onChange={e => {
+                const q = e.target.value;
+                setSpeciesQuery(q);
+                if (selectedProfile) setSelectedProfile(null);
+                if (q.length < 3) { setSearchResults([]); setShowDropdown(false); }
+              }}
                   placeholder="Search e.g. Monstera deliciosa…"
                   style={{ ...inputStyle, paddingRight: 40 }}
                   onFocus={e => { e.currentTarget.style.borderColor = T.fern; if (searchResults.length > 0) setShowDropdown(true); }}
@@ -294,7 +304,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
 
             <div>
               <label style={labelStyle}>Icon</label>
-              <KindPicker value={kind} onChange={setKind} />
+              <PlantIconComposer value={icon} onChange={setIcon} plantName={name || undefined} />
             </div>
             <div>
               <label style={labelStyle}>Room</label>

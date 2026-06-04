@@ -24,6 +24,8 @@ const PATHS: Record<string, string> = {
   clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
   alertCircle: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
   logOut: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
+  chevronUp: '<path d="m18 15-6-6-6 6"/>',
+  shuffle: '<path d="M2 18h1.4c1.5 0 2.9-.7 3.8-1.9l7.6-9.8c.9-1.2 2.3-1.9 3.8-1.9H21"/><polyline points="15 3 21 3 21 9"/><path d="M21 21H19.6c-1.5 0-2.9-.7-3.8-1.9l-.8-1.1"/><path d="M2 6h1.4c1.5 0 2.9.7 3.8 1.9l.8 1.1"/><polyline points="15 21 21 21 21 15"/>',
 };
 
 interface IconProps {

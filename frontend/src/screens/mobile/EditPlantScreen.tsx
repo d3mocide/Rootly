@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { T } from '../../tokens';
 import { Icon } from '../../components';
-import type { Plant } from '../../types/plant';
+import { PlantIconComposer } from '../../components/PlantIconComposer';
+import type { Plant, IconRecipe } from '../../types/plant';
 import type { Area } from '../../types/area';
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
   const [name, setName] = useState(plant.name);
   const [species, setSpecies] = useState(plant.species);
-  const [kind, setKind] = useState<Plant['kind'] | undefined>(plant.kind);
+  const [icon, setIcon] = useState<IconRecipe | undefined>(plant.icon);
   const [room, setRoom] = useState(plant.room);
   const [every, setEvery] = useState(plant.every);
   const [light, setLight] = useState(plant.light);
@@ -35,7 +36,7 @@ export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
       await onEdit(plant.id, {
         name: name.trim(),
         species: species.trim(),
-        kind,
+        icon,
         room: room.trim(),
         every: Number(every) || 7,
         light: light.trim(),
@@ -132,21 +133,8 @@ export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
         </div>
 
         <div>
-          <label style={labelStyle}>Kind</label>
-          <select
-            value={kind ?? ''}
-            onChange={e => setKind((e.target.value || undefined) as Plant['kind'] | undefined)}
-            style={inputStyle}
-            onFocus={e => e.currentTarget.style.borderColor = T.fern}
-            onBlur={e => e.currentTarget.style.borderColor = T.stone200}
-          >
-            <option value="">Auto</option>
-            <option value="monstera">Monstera</option>
-            <option value="fig">Fiddle-leaf Fig</option>
-            <option value="pothos">Pothos</option>
-            <option value="snake">Snake Plant</option>
-            <option value="succulent">Succulent</option>
-          </select>
+          <label style={labelStyle}>Icon</label>
+          <PlantIconComposer value={icon} onChange={setIcon} plantName={name || undefined} />
         </div>
 
         <div>

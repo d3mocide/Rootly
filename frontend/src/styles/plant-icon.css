@@ -1,0 +1,49 @@
+/* Plant Icon Slot System -------------------------------------------------------- */
+
+:root {
+  --leaf-1: #256B45;
+  --leaf-2: #3A7D55;
+  --leaf-3: #5AA277;
+  --stem:   #3A7D55;
+  --vein:   #E9F1E4;
+  --variegation: transparent;
+  --bloom:        transparent;
+  --bloom-center: #E8A23C;
+  --bloom-2:      #C9852F;
+  --pot-body: #C98A5E;
+  --pot-rim:  #B97A4F;
+}
+
+.ic svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.ic .leaf-1 { fill: var(--leaf-1); }
+.ic .leaf-2 { fill: var(--leaf-2); }
+.ic .leaf-3 { fill: var(--leaf-3); }
+.ic .stem        { stroke: var(--stem);         fill: none; stroke-linecap: round; }
+.ic .vein        { stroke: var(--vein);         fill: none; stroke-linecap: round; }
+.ic .variegation { fill: var(--variegation); }
+.ic .vein-veg    { stroke: var(--variegation);  fill: none; stroke-linecap: round; }
+.ic .veg-stroke  { stroke: var(--variegation);  fill: none; stroke-linecap: round; }
+.ic .bloom       { fill: var(--bloom); }
+.ic .bloom-stroke { stroke: var(--bloom);       fill: none; stroke-linecap: round; }
+.ic .petal       { fill: var(--bloom); }
+.ic .center      { fill: var(--bloom-center); }
+.ic .accent      { fill: var(--bloom-2); }
+.ic .accent-stroke { stroke: var(--bloom-2);    fill: none; stroke-linecap: round; }
+.ic .pot-body    { fill: var(--pot-body); }
+.ic .pot-rim     { fill: var(--pot-rim); }
+
+/* Variegation: all patterns invisible until data-veg names one */
+.ic .veg-speckle,
+.ic .veg-marble,
+.ic .veg-margin,
+.ic .veg-center { display: none; }
+
+.ic[data-veg="speckle"] .veg-speckle,
+.ic[data-veg="marble"]  .veg-marble,
+.ic[data-veg="margin"]  .veg-margin,
+.ic[data-veg="center"]  .veg-center  { display: block; }
+
+/* Suppress the base dot-bloom elements when a bloom-head is seated */
+.ic[data-bloom="head"] .bloom,
+.ic[data-bloom="head"] .bloom-stroke { visibility: hidden; }
