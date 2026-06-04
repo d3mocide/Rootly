@@ -38,6 +38,9 @@ const VAR_PATTERNS: { value: VarPattern; label: string }[] = [
 const VAR_COLORS = ['#FFFFFF', '#F4ECDA', '#E5D888', '#F0CDB8', '#C2DA9E'];
 const VAR_COLOR_LABELS = ['White', 'Cream', 'Gold', 'Blush', 'Lime'];
 
+// Fixed preview petal for the shape grid — contrasts with the terra-cotta pot
+const BLOOM_SHAPE_PREVIEW: BloomToken = 'rose';
+
 // Leaf palette presets — swatch is the mid-tone leaf2 color
 const PALETTE_PRESETS: { label: string; swatch: string; value: IconRecipe['palette'] }[] = [
   { label: 'Default', swatch: '#3A7D55', value: undefined },
@@ -261,13 +264,13 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 4 }}>
             <button
               type="button"
+              title="None"
               onClick={() => setVarPattern(null)}
-              style={tileStyle(!currentVar)}
+              style={{ ...tileStyle(!currentVar), aspectRatio: '1', padding: 4 }}
               onMouseEnter={e => { if (currentVar) e.currentTarget.style.background = T.linen; }}
               onMouseLeave={e => { if (currentVar) e.currentTarget.style.background = T.card; }}
             >
               <span style={{ fontSize: 16, lineHeight: 1, color: T.ink3 }}>—</span>
-              <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: !currentVar ? T.fern : T.ink3 }}>None</span>
             </button>
             {VAR_PATTERNS.map(p => {
               const sel = currentVar?.pattern === p.value;
@@ -275,18 +278,16 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
                 <button
                   key={p.value}
                   type="button"
+                  title={p.label}
                   onClick={() => setVarPattern(p.value)}
-                  style={tileStyle(sel)}
+                  style={{ ...tileStyle(sel), aspectRatio: '1', padding: 4 }}
                   onMouseEnter={e => { if (!sel) e.currentTarget.style.background = T.linen; }}
                   onMouseLeave={e => { if (!sel) e.currentTarget.style.background = T.card; }}
                 >
                   <PlantIcon
                     recipe={{ base: currentBase, variegation: { pattern: p.value, color: currentVar?.color ?? '#F4ECDA' } }}
-                    size={34}
+                    size={32}
                   />
-                  <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: sel ? T.fern : T.ink3 }}>
-                    {p.label}
-                  </span>
                 </button>
               );
             })}
@@ -297,7 +298,7 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
               <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, marginBottom: 8 }}>
                 Marking colour
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, padding: '4px 2px' }}>
                 {VAR_COLORS.map((col, i) => {
                   const sel = currentVar.color === col;
                   return (
@@ -327,16 +328,16 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
       {sectionHeader('bloom', 'Bloom', currentBloomHead ? HEAD_LABELS[currentBloomHead] : undefined)}
       <div style={animWrap(open === 'bloom')}>
         <div style={{ paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 4 }}>
             <button
               type="button"
+              title="None"
               onClick={() => setBloomHead(null)}
-              style={tileStyle(!currentBloomHead)}
+              style={{ ...tileStyle(!currentBloomHead), aspectRatio: '1', padding: 4 }}
               onMouseEnter={e => { if (currentBloomHead) e.currentTarget.style.background = T.linen; }}
               onMouseLeave={e => { if (currentBloomHead) e.currentTarget.style.background = T.card; }}
             >
-              <span style={{ fontSize: 16, lineHeight: 1, color: T.ink3, marginBottom: 2 }}>—</span>
-              <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: !currentBloomHead ? T.fern : T.ink3 }}>None</span>
+              <span style={{ fontSize: 16, lineHeight: 1, color: T.ink3 }}>—</span>
             </button>
             {ALL_HEADS.map(h => {
               const sel = currentBloomHead === h;
@@ -344,15 +345,13 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
                 <button
                   key={h}
                   type="button"
+                  title={HEAD_LABELS[h]}
                   onClick={() => setBloomHead(h)}
-                  style={tileStyle(sel)}
+                  style={{ ...tileStyle(sel), aspectRatio: '1', padding: 4 }}
                   onMouseEnter={e => { if (!sel) e.currentTarget.style.background = T.linen; }}
                   onMouseLeave={e => { if (!sel) e.currentTarget.style.background = T.card; }}
                 >
-                  <PlantIcon recipe={{ base: currentBase, bloom: { head: h, petal: currentBloomPetal } }} size={34} />
-                  <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 600, color: sel ? T.fern : T.ink3 }}>
-                    {HEAD_LABELS[h]}
-                  </span>
+                  <PlantIcon recipe={{ base: currentBase, bloom: { head: h, petal: BLOOM_SHAPE_PREVIEW } }} size={32} />
                 </button>
               );
             })}
@@ -363,7 +362,7 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
               <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, marginBottom: 8 }}>
                 Petal colour
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', padding: '4px 2px' }}>
                 {ALL_BLOOM_TOKENS.map(token => {
                   const sel = currentBloomPetal === token;
                   return (
@@ -393,7 +392,7 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
       {sectionHeader('palette', 'Leaf palette', currentPaletteLabel !== 'Default' ? currentPaletteLabel : undefined)}
       <div style={animWrap(open === 'palette')}>
         <div style={{ paddingBottom: 14 }}>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: '4px 2px' }}>
             {PALETTE_PRESETS.map(preset => {
               const sel = currentPaletteLabel === preset.label;
               return (
