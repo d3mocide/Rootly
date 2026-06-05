@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { T } from '../tokens';
 import { Button } from '../components';
-import { login, setup, saveToken } from '../api/auth';
+import { login, register, setup, saveToken } from '../api/auth';
 
 interface Props {
   onAuth: (token: string) => void;
   isFirstRun?: boolean;
+  signupsEnabled?: boolean;
 }
 
-export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
+export function AuthScreen({ onAuth, isFirstRun = false, signupsEnabled = false }: Props) {
+  const canRegister = isFirstRun || signupsEnabled;
   const [mode, setMode] = useState<'login' | 'register'>(isFirstRun ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,8 +32,10 @@ export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
     try {
       if (mode === 'login') {
         await login(email, password);
-      } else {
+      } else if (isFirstRun) {
         await setup(email, password, displayName.trim() || undefined);
+      } else {
+        await register(email, password, displayName.trim() || undefined);
       }
       saveToken('authenticated');
       onAuth('authenticated');
@@ -70,8 +74,8 @@ export function AuthScreen({ onAuth, isFirstRun = false }: Props) {
           )}
         </div>
 
-        {/* Mode toggle — hidden on first run since there's nobody to log in yet */}
-        {!isFirstRun && (
+        {/* Mode toggle — only when not first run and signups are enabled */}
+        {!isFirstRun && canRegister && (
           <div style={{
             display: 'flex', background: T.linen, borderRadius: 12,
             padding: 4, marginBottom: 28, gap: 4,

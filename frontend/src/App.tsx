@@ -48,6 +48,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<UserResponse | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
   const [setupRequired, setSetupRequired] = useState(false);
+  const [signupsEnabled, setSignupsEnabled] = useState(false);
 
   const isDesktop = useBreakpoint(700);
 
@@ -66,7 +67,10 @@ export default function App() {
         .finally(() => setAuthChecking(false));
     } else {
       checkSetup()
-        .then(({ setup_required }) => setSetupRequired(setup_required))
+        .then(({ setup_required, signups_enabled }) => {
+          setSetupRequired(setup_required);
+          setSignupsEnabled(signups_enabled);
+        })
         .catch(() => {})
         .finally(() => setAuthChecking(false));
     }
@@ -192,7 +196,7 @@ export default function App() {
   }
 
   if (!token) {
-    return <AuthScreen onAuth={handleAuth} isFirstRun={setupRequired} />;
+    return <AuthScreen onAuth={handleAuth} isFirstRun={setupRequired} signupsEnabled={signupsEnabled} />;
   }
 
   return (
