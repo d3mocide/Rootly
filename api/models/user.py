@@ -26,5 +26,6 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     is_password_temp = Column(Boolean, nullable=False, default=False)
+    is_active = Column(Boolean, nullable=False, default=True)
 
     plants = relationship("Plant", back_populates="user", cascade="all, delete-orphan")

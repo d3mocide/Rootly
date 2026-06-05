@@ -5,7 +5,9 @@ export interface UserResponse {
   email: string;
   display_name: string | null;
   role: string;
+  is_active: boolean;
   created_at: string;
+  last_login_at: string | null;
 }
 
 export const getToken = () => localStorage.getItem('rootly_token');
@@ -28,6 +30,17 @@ export async function setup(
   });
 }
 
+export async function register(
+  email: string,
+  password: string,
+  displayName?: string,
+): Promise<void> {
+  await apiFetch('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, display_name: displayName || undefined }),
+  });
+}
+
 export async function login(email: string, password: string): Promise<void> {
   const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
   await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, nonce }) });
@@ -42,7 +55,7 @@ export async function getMe(): Promise<UserResponse> {
   return apiFetch('/auth/me');
 }
 
-export async function checkSetup(): Promise<{ setup_required: boolean }> {
+export async function checkSetup(): Promise<{ setup_required: boolean; signups_enabled: boolean }> {
   return apiFetch('/auth/setup-status');
 }
 
@@ -52,4 +65,3 @@ export async function apiChangePassword(currentPassword: string, newPassword: st
     body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
   });
 }
-

@@ -18,7 +18,8 @@ from auth import (
 from config import settings
 from database import get_db
 from models.user import User
-from schemas.user import ChangePassword, UserLogin, UserResponse, UserSetup
+from models.site_settings import SiteSettings
+from schemas.user import ChangePassword, UserLogin, UserRegister, UserResponse, UserSetup
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -35,10 +36,24 @@ def _clear_auth_cookies(response: Response) -> None:
     response.delete_cookie("refresh_token")
 
 
+async def _get_or_create_settings(db: AsyncSession) -> SiteSettings:
+    result = await db.execute(select(SiteSettings).where(SiteSettings.id == 1))
+    s = result.scalar_one_or_none()
+    if s is None:
+        s = SiteSettings(id=1, signups_enabled=False)
+        db.add(s)
+        await db.commit()
+        await db.refresh(s)
+    return s
+
+
 @router.get("/setup-status")
 async def setup_status(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(func.count()).select_from(User))
-    return {"setup_required": result.scalar() == 0}
+    count = (await db.execute(select(func.count()).select_from(User))).scalar()
+    if count == 0:
+        return {"setup_required": True, "signups_enabled": False}
+    s = await _get_or_create_settings(db)
+    return {"setup_required": False, "signups_enabled": s.signups_enabled}
 
 
 @router.post("/setup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -70,6 +85,32 @@ async def setup(body: UserSetup, response: Response, db: AsyncSession = Depends(
     db.add_all(default_areas)
     await db.commit()
 
+    # Ensure site_settings row exists (signups off by default)
+    await _get_or_create_settings(db)
+
+    _set_auth_cookies(response, user.id)
+    return user
+
+
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register(body: UserRegister, response: Response, db: AsyncSession = Depends(get_db)):
+    s = await _get_or_create_settings(db)
+    if not s.signups_enabled:
+        raise HTTPException(status_code=403, detail="Signups are currently disabled")
+    existing = (await db.execute(select(User).where(User.email == body.email))).scalar_one_or_none()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    if len(body.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    user = User(
+        email=body.email,
+        password_hash=hash_password(body.password),
+        display_name=body.display_name,
+        role="operator",
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
     _set_auth_cookies(response, user.id)
     return user
 
@@ -84,6 +125,8 @@ async def login(body: UserLogin, response: Response, request: Request, db: Async
         raise HTTPException(status_code=401, detail="Invalid credentials")
     if not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account disabled")
     user.last_login_at = datetime.now(timezone.utc)
     await db.commit()
     _set_auth_cookies(response, user.id)
