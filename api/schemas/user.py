@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from uuid import UUID
-from typing import Optional
+from typing import Literal, Optional
 
 
 class UserSetup(BaseModel):
@@ -33,10 +33,15 @@ class UserResponse(BaseModel):
     display_name: Optional[str] = None
     role: str
     is_active: bool
+    units: str = "imperial"
     created_at: datetime
     last_login_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+class UserPreferences(BaseModel):
+    units: Literal["imperial", "metric"]
 
 
 class UserCreate(BaseModel):

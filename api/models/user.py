@@ -27,5 +27,7 @@ class User(Base):
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     is_password_temp = Column(Boolean, nullable=False, default=False)
     is_active = Column(Boolean, nullable=False, default=True)
+    # Measurement system used across the UI: "imperial" or "metric".
+    units = Column(String(10), nullable=False, default="imperial", server_default="imperial")
 
     plants = relationship("Plant", back_populates="user", cascade="all, delete-orphan")

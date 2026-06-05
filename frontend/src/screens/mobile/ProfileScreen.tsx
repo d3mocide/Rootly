@@ -3,6 +3,7 @@ import type { Plant } from '../../types/plant';
 import { T } from '../../tokens';
 import { Button, StatusPill, MoistureRing, Sparkline, SectionHeader, Icon } from '../../components';
 import { PlantArt } from '../../components/PlantArt';
+import { useUnits, formatLength } from '../../units';
 
 interface Props {
   plant: Plant;
@@ -15,6 +16,7 @@ interface Props {
 
 export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete, onLogGrowth }: Props) {
   const [showMenu, setShowMenu] = useState(false);
+  const units = useUnits();
 
   const menuItemStyle: React.CSSProperties = {
     display: 'flex',
@@ -35,7 +37,7 @@ export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete, onLogG
 
   const activity = [
     { icon: 'droplet', text: 'Watered', when: plant.lastWater, color: '#5E8FB8' },
-    { icon: 'ruler', text: 'Logged growth +2cm', when: '2 weeks ago', color: T.fern },
+    { icon: 'ruler', text: `Logged growth +${formatLength(2, units)}`, when: '2 weeks ago', color: T.fern },
     { icon: 'pencil', text: `Moved to ${plant.room}`, when: '1 month ago', color: T.ink3 },
   ];
 
@@ -164,7 +166,7 @@ export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete, onLogG
               <div style={{ background: T.card, borderRadius: 20, padding: '18px 20px', boxShadow: '0 2px 6px rgba(30,42,34,.06)' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <span style={{ fontFamily: T.mono, fontSize: 26, fontWeight: 500, color: T.canopy }}>
-                    +{plant.growth[plant.growth.length - 1] - plant.growth[0]}cm
+                    +{formatLength(plant.growth[plant.growth.length - 1] - plant.growth[0], units)}
                   </span>
                   <span style={{ fontFamily: T.sans, fontSize: 13, color: T.ink3 }}>over 7 weeks</span>
                 </div>

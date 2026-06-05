@@ -22,7 +22,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['rootly-mark.svg', 'icons/*.png', 'splash/*.png'],
+      includeAssets: ['rootly-mark.svg', 'icons/*.png', 'icons/*.svg', 'splash/*.png'],
       manifest: {
         name: 'Rootly',
         short_name: 'Rootly',

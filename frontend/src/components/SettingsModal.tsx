@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { T } from '../tokens';
 import { Button, Icon } from './index';
-import { apiChangePassword } from '../api/auth';
+import { apiChangePassword, updatePreferences } from '../api/auth';
 import type { UserResponse } from '../api/auth';
 import { getDisplayName } from '../api/auth';
 import type { Area } from '../types/area';
@@ -18,6 +18,7 @@ interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: UserResponse | null;
+  onUpdateUser: (user: UserResponse) => void;
   onLogout: () => void;
   flash: (msg: string) => void;
   areas: Area[];
@@ -25,7 +26,7 @@ interface SettingsModalProps {
   onDeleteArea: (id: string) => Promise<void>;
 }
 
-export function SettingsModal({ isOpen, onClose, currentUser, onLogout, flash, areas, onAddArea, onDeleteArea }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, currentUser, onUpdateUser, onLogout, flash, areas, onAddArea, onDeleteArea }: SettingsModalProps) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -104,6 +105,19 @@ export function SettingsModal({ isOpen, onClose, currentUser, onLogout, flash, a
       setError(err instanceof Error ? err.message : 'Failed to change password.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const units = currentUser?.units ?? 'imperial';
+
+  const handleUnitsChange = async (next: 'imperial' | 'metric') => {
+    if (!currentUser || next === currentUser.units) return;
+    try {
+      const updated = await updatePreferences(next);
+      onUpdateUser(updated);
+      flash(next === 'imperial' ? 'Switched to imperial units' : 'Switched to metric units');
+    } catch {
+      flash('Failed to update units');
     }
   };
 
@@ -295,6 +309,38 @@ export function SettingsModal({ isOpen, onClose, currentUser, onLogout, flash, a
               {loading ? 'Updating...' : 'Save Password'}
             </Button>
           </form>
+
+          {/* Preferences section */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${T.stone100}`, paddingTop: 20 }}>
+            <h3 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 17, color: T.ink }}>Preferences</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: T.card, padding: '14px 16px', borderRadius: 14, border: `1px solid ${T.stone100}` }}>
+              <div>
+                <div style={{ fontFamily: T.sans, fontSize: 14.5, fontWeight: 600, color: T.ink }}>Measurement units</div>
+                <div style={{ fontFamily: T.sans, fontSize: 12.5, color: T.ink3, marginTop: 2 }}>
+                  {units === 'imperial' ? 'Inches and °F' : 'Centimetres and °C'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', background: T.stone100, borderRadius: 999, padding: 3, flexShrink: 0 }}>
+                {(['imperial', 'metric'] as const).map(u => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => handleUnitsChange(u)}
+                    style={{
+                      fontFamily: T.sans, fontSize: 12.5, fontWeight: 700, textTransform: 'capitalize',
+                      padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                      background: units === u ? T.card : 'transparent',
+                      color: units === u ? T.canopy : T.ink3,
+                      boxShadow: units === u ? '0 1px 3px rgba(30,42,34,.12)' : 'none',
+                      transition: 'all .14s cubic-bezier(.22,.61,.36,1)',
+                    }}
+                  >
+                    {u}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Areas section */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${T.stone100}`, paddingTop: 20 }}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { T } from '../tokens';
 import { Button, Icon } from './index';
 import type { Plant } from '../types/plant';
+import { useUnits, lengthUnit, toDisplayLength, fromDisplayLength } from '../units';
 
 interface LogGrowthModalProps {
   isOpen: boolean;
@@ -11,12 +12,14 @@ interface LogGrowthModalProps {
 }
 
 export function LogGrowthModal({ isOpen, onClose, plant, onLog }: LogGrowthModalProps) {
-  // Use the last growth value as a helpful default/starting point if available
-  const lastGrowthValue = plant.growth && plant.growth.length > 0 
-    ? plant.growth[plant.growth.length - 1] 
+  const units = useUnits();
+  // Use the last growth value (stored in cm) as a helpful default/starting point,
+  // shown in the user's preferred unit.
+  const lastGrowthValue = plant.growth && plant.growth.length > 0
+    ? plant.growth[plant.growth.length - 1]
     : 10;
-  
-  const [height, setHeight] = useState<string>(String(lastGrowthValue));
+
+  const [height, setHeight] = useState<string>(String(toDisplayLength(lastGrowthValue, units)));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +35,8 @@ export function LogGrowthModal({ isOpen, onClose, plant, onLog }: LogGrowthModal
     setError(null);
     setLoading(true);
     try {
-      await onLog(num);
+      // Growth is stored in centimetres regardless of the display unit.
+      await onLog(fromDisplayLength(num, units));
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to log growth.');
@@ -136,21 +140,21 @@ export function LogGrowthModal({ isOpen, onClose, plant, onLog }: LogGrowthModal
             )}
 
             <div>
-              <label style={labelStyle}>Current height (cm)</label>
+              <label style={labelStyle}>Current height ({lengthUnit(units)})</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type="number"
                   step="any"
                   value={height}
                   onChange={e => setHeight(e.target.value)}
-                  placeholder="e.g. 15"
+                  placeholder={units === 'imperial' ? 'e.g. 6' : 'e.g. 15'}
                   autoFocus
                   style={inputStyle}
                   onFocus={e => e.currentTarget.style.borderColor = T.fern}
                   onBlur={e => e.currentTarget.style.borderColor = T.stone300}
                 />
                 <span style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontFamily: T.sans, fontSize: 14.5, color: T.ink3, fontWeight: 600 }}>
-                  cm
+                  {lengthUnit(units)}
                 </span>
               </div>
             </div>
