@@ -29,7 +29,7 @@ export function TodayScreen({ plants, onOpen, onWater, onWaterAll, currentUser, 
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: T.paper, WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
-      <div style={{ padding: '58px 20px 120px' }}>
+      <div style={{ padding: 'calc(14px + var(--sat)) 20px calc(120px + var(--sab))' }}>
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>

@@ -198,7 +198,7 @@ export function ProfileScreen({ plant, onBack, onWater, onEdit, onDelete, onLogG
 
       {/* sticky water button */}
       <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, padding: '14px 20px 30px',
+        position: 'absolute', left: 0, right: 0, bottom: 0, padding: '14px 20px calc(30px + var(--sab))',
         background: `linear-gradient(to top, ${T.paper} 62%, transparent)`,
       }}>
         <Button variant="primary" size="lg" icon="droplet" full onClick={() => onWater(plant)}>Water now</Button>

@@ -22,19 +22,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['rootly-mark.svg'],
+      includeAssets: ['rootly-mark.svg', 'icons/*.png', 'splash/*.png'],
       manifest: {
         name: 'Rootly',
         short_name: 'Rootly',
         description: 'Grow from the root up. Calm, helpful plant care.',
-        theme_color: '#FBFAF6',
-        background_color: '#FBFAF6',
+        theme_color: '#20503B',
+        background_color: '#20503B',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
         icons: [
-          { src: '/rootly-mark.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-512x512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
       },
     }),
   ],

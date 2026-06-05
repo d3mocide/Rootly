@@ -17,7 +17,7 @@ export function CareScreen({ plants, onOpen }: Props) {
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: T.paper }}>
-      <div style={{ padding: '58px 20px 120px' }}>
+      <div style={{ padding: 'calc(14px + var(--sat)) 20px calc(120px + var(--sab))' }}>
         <h1 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 30, color: T.ink, letterSpacing: '-0.03em' }}>Care</h1>
 
         {/* seasonal nudge */}
