@@ -6,6 +6,7 @@ import { Topbar } from './Topbar';
 import { getDisplayName } from '../../api/auth';
 import type { UserResponse } from '../../api/auth';
 import { getLocalDateInTimezone, getUpcomingWateringText } from '../../utils/date';
+import { useUnits, formatLength } from '../../units';
 
 interface Props {
   plants: Plant[];
@@ -30,6 +31,7 @@ function Summary({ icon, label, value, tint, color }: { icon: string; label: str
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function TodayDesktop({ plants, onOpen, onWater, onWaterAll, currentUser }: Props) {
+  const units = useUnits();
   const needs = plants.filter(p => p.status === 'dry' || p.status === 'soon');
   const well = plants.filter(p => p.status === 'thriving' || p.status === 'watered');
   const dryCount = plants.filter(p => p.status === 'dry').length;
@@ -131,7 +133,7 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll, currentUser 
             <SectionHeader>This week</SectionHeader>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Summary icon="droplets" label="Waterings logged" value={String(wateringsLogged)} tint={T.waterSoft} color={T.water} />
-              <Summary icon="trendingUp" label="Growth across plants" value={`+${totalGrowth}cm`} tint={T.successSoft} color={T.success} />
+              <Summary icon="trendingUp" label="Growth across plants" value={`+${formatLength(totalGrowth, units)}`} tint={T.successSoft} color={T.success} />
               <Summary icon="check" label="On-time care" value={`${onTimeCareRate}%`} tint={T.sprout} color={T.canopy} />
             </div>
           </Card>

@@ -2,6 +2,7 @@ import type { Plant } from '../../types/plant';
 import { T } from '../../tokens';
 import { Sparkline, SectionHeader } from '../../components';
 import { PlantArt } from '../../components/PlantArt';
+import { useUnits, formatLength } from '../../units';
 
 interface Props {
   plants: Plant[];
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function GrowthScreen({ plants, onOpen }: Props) {
+  const units = useUnits();
   const totalGrowth = plants.reduce((sum, p) => {
     if (p.growth && p.growth.length >= 2) {
       return sum + (p.growth[p.growth.length - 1] - p.growth[0]);
@@ -44,7 +46,7 @@ export function GrowthScreen({ plants, onOpen }: Props) {
         <div style={{ marginTop: 18, background: T.canopy, borderRadius: 24, padding: '20px 22px', color: T.onDark }}>
           <div style={{ fontFamily: T.sans, fontSize: 13.5, fontWeight: 600, color: T.sageSoft }}>Across all plants</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 5 }}>
-            <span style={{ fontFamily: T.mono, fontSize: 38, fontWeight: 500, letterSpacing: '-0.02em' }}>+{totalGrowth}cm</span>
+            <span style={{ fontFamily: T.mono, fontSize: 38, fontWeight: 500, letterSpacing: '-0.02em' }}>+{formatLength(totalGrowth, units)}</span>
             <span style={{ fontFamily: T.sans, fontSize: 14, color: T.sageSoft }}>this season</span>
           </div>
           <div style={{ marginTop: 8, color: '#cfe0c6' }}>
@@ -66,7 +68,7 @@ export function GrowthScreen({ plants, onOpen }: Props) {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: T.sans, fontSize: 15, fontWeight: 600, color: T.ink }}>{p.name}</div>
-                  <div style={{ fontFamily: T.mono, fontSize: 12, color: T.fern, marginTop: 1 }}>+{p.growth[p.growth.length - 1] - p.growth[0]}cm</div>
+                  <div style={{ fontFamily: T.mono, fontSize: 12, color: T.fern, marginTop: 1 }}>+{formatLength(p.growth[p.growth.length - 1] - p.growth[0], units)}</div>
                 </div>
                 <Sparkline data={p.growth} width={84} height={34} />
               </div>

@@ -6,6 +6,7 @@ import type { Plant, IconRecipe } from '../../types/plant';
 import type { Area } from '../../types/area';
 import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery, suggestIconFromSpecies } from '../../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../../api/plantbook';
+import { useUnits, formatTempRange } from '../../units';
 
 interface Props {
   onClose: () => void;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
+  const units = useUnits();
   const [name, setName] = useState('');
   const [room, setRoom] = useState('');
   const [note, setNote] = useState('');
@@ -239,7 +241,7 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
               <MobileCareChip label="Water every" value={`~${every} days`} />
               {lightLabel && <MobileCareChip label="Light" value={lightLabel} />}
               {selectedProfile.min_temp != null && selectedProfile.max_temp != null && (
-                <MobileCareChip label="Temperature" value={`${selectedProfile.min_temp}–${selectedProfile.max_temp}°C`} />
+                <MobileCareChip label="Temperature" value={formatTempRange(selectedProfile.min_temp, selectedProfile.max_temp, units)} />
               )}
               {selectedProfile.min_env_humid != null && selectedProfile.max_env_humid != null && (
                 <MobileCareChip label="Humidity" value={`${selectedProfile.min_env_humid}–${selectedProfile.max_env_humid}%`} />

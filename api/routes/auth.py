@@ -19,7 +19,7 @@ from config import settings
 from database import get_db
 from models.user import User
 from models.site_settings import SiteSettings
-from schemas.user import ChangePassword, UserLogin, UserRegister, UserResponse, UserSetup
+from schemas.user import ChangePassword, UserLogin, UserPreferences, UserRegister, UserResponse, UserSetup
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -141,6 +141,18 @@ async def logout(response: Response):
 
 @router.get("/me", response_model=UserResponse)
 async def me(user: User = Depends(get_current_user)):
+    return user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_preferences(
+    body: UserPreferences,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    user.units = body.units
+    await db.commit()
+    await db.refresh(user)
     return user
 
 

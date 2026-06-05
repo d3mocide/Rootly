@@ -9,6 +9,7 @@ import { fetchPlants, apiWaterPlant, apiCreatePlant, apiUpdatePlant, apiDeletePl
 import { fetchAreas, apiCreateArea, apiDeleteArea } from './api/areas';
 import type { Area } from './types/area';
 import { AuthScreen } from './screens/AuthScreen';
+import { UnitsContext } from './units';
 
 // Mobile
 import { TabBar } from './screens/mobile/TabBar';
@@ -200,6 +201,7 @@ export default function App() {
   }
 
   return (
+    <UnitsContext.Provider value={currentUser?.units ?? 'imperial'}>
     <div style={{ height: '100dvh', position: 'relative', overflow: 'hidden' }}>
       {isDesktop ? (
         <div style={{ display: 'flex', height: '100dvh', position: 'relative', overflow: 'hidden' }}>
@@ -218,7 +220,7 @@ export default function App() {
             {(tab === 'growth' || tab === 'care') && <PlaceholderDesktop tab={tab} />}
             {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} onLogGrowth={setGrowthTarget} />}
           </div>
-          <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} currentUser={currentUser} onLogout={handleLogout} flash={flash} areas={areas} onAddArea={handleAddArea} onDeleteArea={handleDeleteArea} />
+          <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} currentUser={currentUser} onUpdateUser={setCurrentUser} onLogout={handleLogout} flash={flash} areas={areas} onAddArea={handleAddArea} onDeleteArea={handleDeleteArea} />
           <AddPlantModal isOpen={addOpenDesktop} onClose={() => setAddOpenDesktop(false)} onAdd={handleAddPlant} areas={areas} />
         </div>
       ) : (
@@ -237,7 +239,7 @@ export default function App() {
 
           {addOpen && <AddPlantScreen onAdd={handleAddPlant} onClose={() => setAddOpen(false)} areas={areas} />}
           {waterTarget && <WaterSheet plant={waterTarget} onConfirm={confirmWater} onClose={() => setWaterTarget(null)} />}
-          <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} currentUser={currentUser} onLogout={handleLogout} flash={flash} areas={areas} onAddArea={handleAddArea} onDeleteArea={handleDeleteArea} />
+          <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} currentUser={currentUser} onUpdateUser={setCurrentUser} onLogout={handleLogout} flash={flash} areas={areas} onAddArea={handleAddArea} onDeleteArea={handleDeleteArea} />
         </div>
       )}
 
@@ -336,5 +338,6 @@ export default function App() {
 
       {toast && <Toast message={toast} />}
     </div>
+    </UnitsContext.Provider>
   );
 }

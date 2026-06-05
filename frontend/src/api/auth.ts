@@ -6,6 +6,7 @@ export interface UserResponse {
   display_name: string | null;
   role: string;
   is_active: boolean;
+  units: 'imperial' | 'metric';
   created_at: string;
   last_login_at: string | null;
 }
@@ -64,4 +65,8 @@ export async function apiChangePassword(currentPassword: string, newPassword: st
     method: 'POST',
     body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
   });
+}
+
+export async function updatePreferences(units: 'imperial' | 'metric'): Promise<UserResponse> {
+  return apiFetch('/auth/me', { method: 'PATCH', body: JSON.stringify({ units }) });
 }

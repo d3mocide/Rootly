@@ -6,6 +6,7 @@ import type { Plant, IconRecipe } from '../types/plant';
 import type { Area } from '../types/area';
 import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery, suggestIconFromSpecies } from '../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../api/plantbook';
+import { useUnits, formatTempRange } from '../units';
 
 interface AddPlantModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface AddPlantModalProps {
 }
 
 export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalProps) {
+  const units = useUnits();
   const [name, setName] = useState('');
   const [room, setRoom] = useState('');
   const [note, setNote] = useState('');
@@ -268,7 +270,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
                   <CareChip label="Water every" value={`~${every} days`} />
                   {lightLabel && <CareChip label="Light" value={lightLabel} />}
                   {selectedProfile.min_temp != null && selectedProfile.max_temp != null && (
-                    <CareChip label="Temperature" value={`${selectedProfile.min_temp}–${selectedProfile.max_temp}°C`} />
+                    <CareChip label="Temperature" value={formatTempRange(selectedProfile.min_temp, selectedProfile.max_temp, units)} />
                   )}
                   {selectedProfile.min_env_humid != null && selectedProfile.max_env_humid != null && (
                     <CareChip label="Humidity" value={`${selectedProfile.min_env_humid}–${selectedProfile.max_env_humid}%`} />
