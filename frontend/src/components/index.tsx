@@ -293,7 +293,7 @@ export function Card({ children, pad = 20 }: { children: React.ReactNode; pad?: 
 export function Toast({ message }: { message: string }) {
   return (
     <div style={{
-      position: 'fixed', left: '50%', bottom: 90, transform: 'translateX(-50%)', zIndex: 80,
+      position: 'fixed', left: '50%', bottom: 'calc(90px + var(--sab))', transform: 'translateX(-50%)', zIndex: 80,
       display: 'flex', alignItems: 'center', gap: 9, background: T.moss, color: T.onDark,
       borderRadius: 999, padding: '12px 18px', boxShadow: '0 8px 24px rgba(23,61,44,.35)',
       fontFamily: T.sans, fontSize: 14.5, fontWeight: 600, whiteSpace: 'nowrap',
