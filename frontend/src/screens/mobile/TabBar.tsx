@@ -19,15 +19,23 @@ const TABS = [
 
 export function TabBar({ active, onChange, onAdd }: TabBarProps) {
   return (
-    <div data-debug-layer="nav" style={{
-      flexShrink: 0, margin: '0 14px', marginBottom: 'calc(8px + var(--sab))', height: 64,
-      background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(14px) saturate(160%)',
-      WebkitBackdropFilter: 'blur(14px) saturate(160%)',
-      border: `1px solid ${T.stone100}`, borderRadius: 28,
-      boxShadow: '0 8px 24px rgba(30,42,34,.12)',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-      padding: '0 6px', zIndex: 40,
-    }}>
+    <div
+      data-debug-layer="nav"
+      style={{
+        flexShrink: 0,
+        background: 'rgba(251,250,246,0.92)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        borderTop: `1px solid ${T.stone100}`,
+        paddingBottom: 'var(--sab)',
+        zIndex: 40,
+      }}
+    >
+      <div style={{
+        height: 64,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+        padding: '0 6px',
+      }}>
       {TABS.map(t =>
         t.id === '__add' ? (
           <button key="add" onClick={onAdd} style={{
@@ -49,6 +57,7 @@ export function TabBar({ active, onChange, onAdd }: TabBarProps) {
           </button>
         )
       )}
+      </div>
     </div>
   );
 }
