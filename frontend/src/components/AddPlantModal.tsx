@@ -7,6 +7,7 @@ import type { Area } from '../types/area';
 import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery, suggestIconFromSpecies } from '../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../api/plantbook';
 import { identifyPlant } from '../api/identify';
+import { ApiError } from '../api/client';
 import { useUnits, formatTempRange } from '../units';
 
 interface AddPlantModalProps {
@@ -139,8 +140,8 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
         setSpeciesQuery(result.common_name || result.scientific_name);
         justSelectedRef.current = true;
       }
-    } catch {
-      setError('Identification failed. Check your connection and try again.');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Identification failed. Check your connection and try again.');
     } finally {
       setIdentifying(false);
     }
