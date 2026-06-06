@@ -202,7 +202,7 @@ export default function App() {
 
   return (
     <UnitsContext.Provider value={currentUser?.units ?? 'imperial'}>
-    <div style={{ height: '100dvh', position: 'relative', overflow: 'hidden' }}>
+    <div data-debug-layer="shell" style={{ height: '100dvh', position: 'relative', overflow: 'hidden' }}>
       {isDesktop ? (
         <div style={{ display: 'flex', height: '100dvh', position: 'relative', overflow: 'hidden' }}>
           <Sidebar
