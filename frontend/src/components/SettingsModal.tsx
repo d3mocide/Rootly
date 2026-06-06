@@ -353,9 +353,13 @@ export function SettingsModal({ isOpen, onClose, currentUser, onUpdateUser, onLo
             </div>
           </div>
 
-          {/* Developer section */}
+          {/* Developer section — admins only */}
+          {isAdmin && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${T.stone100}`, paddingTop: 20 }}>
-            <h3 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 17, color: T.ink }}>Developer</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 17, color: T.ink }}>Developer</h3>
+              <span style={{ fontFamily: T.sans, fontSize: 12, fontWeight: 700, color: T.canopy, background: T.sprout, padding: '3px 9px', borderRadius: 999 }}>Admin</span>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: T.card, padding: '14px 16px', borderRadius: 14, border: `1px solid ${T.stone100}` }}>
               <div style={{ paddingRight: 12 }}>
                 <div style={{ fontFamily: T.sans, fontSize: 14.5, fontWeight: 600, color: T.ink }}>Layout diagnostics</div>
@@ -379,6 +383,7 @@ export function SettingsModal({ isOpen, onClose, currentUser, onUpdateUser, onLo
               </button>
             </div>
           </div>
+          )}
 
           {/* Areas section */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${T.stone100}`, paddingTop: 20 }}>

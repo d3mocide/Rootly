@@ -98,7 +98,9 @@ function detectIosVersion(): string {
   return 'n/a';
 }
 
-export function LayoutDebugger() {
+/** `allowed` gates the whole tool to privileged users (admins). When
+ *  false the component renders nothing, regardless of the stored flag. */
+export function LayoutDebugger({ allowed = false }: { allowed?: boolean }) {
   const [enabled, setEnabled] = useState(readLayoutDebugEnabled);
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(false);
@@ -229,7 +231,7 @@ export function LayoutDebugger() {
 
   // ---- Live sampling while enabled -------------------------------
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !allowed) return;
     let raf = 0;
     const sample = (label: string) => {
       cancelAnimationFrame(raf);
@@ -263,7 +265,7 @@ export function LayoutDebugger() {
       vv?.removeEventListener('resize', onResize);
       vv?.removeEventListener('scroll', onScroll);
     };
-  }, [enabled, measure, diffAndLog]);
+  }, [enabled, allowed, measure, diffAndLog]);
 
   // ---- Copy report ------------------------------------------------
   const report = useMemo(() => {
@@ -339,6 +341,7 @@ export function LayoutDebugger() {
     </div>
   );
 
+  if (!allowed) return null;
   if (!enabled) return probes;
 
   const panel = panelPos ?? { x: Math.max(8, window.innerWidth - 312), y: 40 };
