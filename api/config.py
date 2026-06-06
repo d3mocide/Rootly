@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     plantbook_client_id: str = ""
     plantbook_client_secret: str = ""
     plantbook_api_key: str = ""  # Alternative: API-key auth (Token header), valid for search/detail only
+    plantnet_api_key: str = ""
 
     model_config = {"env_file": ".env", "env_ignore_empty": True}
 
