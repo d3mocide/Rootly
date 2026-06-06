@@ -243,9 +243,16 @@ export const PLANT_HEADS: Record<HeadKey, React.FC> = {
 
 /* Assembly transforms — scale / position each head to seat at y≈20 on a base */
 export const HEAD_ASSEMBLY: Partial<Record<HeadKey, string>> = {
-  daisy:  'translate(32 20.5) scale(1.16) translate(-32 -19)',
-  iris:   'translate(32 21) scale(0.92) translate(-32 -21)',
-  orchid: 'translate(32 22) scale(0.92) translate(-32 -22)',
+  daisy:   'translate(32 20.5) scale(0.93) translate(-32 -19)',  // was 1.16 → trimmed ~20%
+  iris:    'translate(32 21) scale(0.74) translate(-32 -21)',
+  orchid:  'translate(32 22) scale(0.74) translate(-32 -22)',
+  lily:    'translate(32 24) scale(0.80) translate(-32 -24)',
+  cluster: 'translate(32 20) scale(0.80) translate(-32 -20)',
+  spike:   'translate(32 21) scale(0.80) translate(-32 -21)',
+  poppy:   'translate(32 23) scale(0.80) translate(-32 -23)',
+  rose:    'translate(32 22) scale(0.80) translate(-32 -22)',
+  tulip:   'translate(32 22) scale(0.80) translate(-32 -22)',
+  bell:    'translate(32 20) scale(0.80) translate(-32 -20)',
 };
 
 /* Connecting stem (+ optional side leaves) rendered before the pot for each head */
