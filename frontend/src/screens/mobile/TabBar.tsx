@@ -19,7 +19,7 @@ const TABS = [
 
 export function TabBar({ active, onChange, onAdd }: TabBarProps) {
   return (
-    <div style={{
+    <div data-debug-layer="nav" style={{
       position: 'fixed', left: 14, right: 14, bottom: 'calc(20px + var(--sab))', height: 64,
       background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(14px) saturate(160%)',
       WebkitBackdropFilter: 'blur(14px) saturate(160%)',

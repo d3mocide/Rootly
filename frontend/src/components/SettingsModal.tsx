@@ -13,6 +13,7 @@ import {
   getAdminSettings,
   updateAdminSettings,
 } from '../api/admin';
+import { setLayoutDebugEnabled, readLayoutDebugEnabled } from '../utils/layoutDebug';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -50,7 +51,17 @@ export function SettingsModal({ isOpen, onClose, currentUser, onUpdateUser, onLo
   const [createError, setCreateError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // Developer tools
+  const [layoutDebug, setLayoutDebug] = useState(readLayoutDebugEnabled);
+
   const isAdmin = currentUser?.role === 'admin';
+
+  const toggleLayoutDebug = () => {
+    const next = !layoutDebug;
+    setLayoutDebug(next);
+    setLayoutDebugEnabled(next);
+    flash(next ? 'Layout diagnostics on — tap the DBG button.' : 'Layout diagnostics off.');
+  };
 
   useEffect(() => {
     if (isOpen && isAdmin) {
@@ -341,6 +352,38 @@ export function SettingsModal({ isOpen, onClose, currentUser, onUpdateUser, onLo
               </div>
             </div>
           </div>
+
+          {/* Developer section — admins only */}
+          {isAdmin && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${T.stone100}`, paddingTop: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 17, color: T.ink }}>Developer</h3>
+              <span style={{ fontFamily: T.sans, fontSize: 12, fontWeight: 700, color: T.canopy, background: T.sprout, padding: '3px 9px', borderRadius: 999 }}>Admin</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: T.card, padding: '14px 16px', borderRadius: 14, border: `1px solid ${T.stone100}` }}>
+              <div style={{ paddingRight: 12 }}>
+                <div style={{ fontFamily: T.sans, fontSize: 14.5, fontWeight: 600, color: T.ink }}>Layout diagnostics</div>
+                <div style={{ fontFamily: T.sans, fontSize: 12.5, color: T.ink3, marginTop: 2 }}>
+                  Overlay safe-area insets, viewport units &amp; DOM layers to debug PWA spacing.
+                </div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={layoutDebug}
+                onClick={toggleLayoutDebug}
+                style={{
+                  flexShrink: 0, width: 46, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer',
+                  background: layoutDebug ? T.canopy : T.stone200, padding: 3,
+                  display: 'flex', justifyContent: layoutDebug ? 'flex-end' : 'flex-start',
+                  transition: 'background .18s cubic-bezier(.22,.61,.36,1)',
+                }}
+              >
+                <span style={{ width: 22, height: 22, borderRadius: '50%', background: T.card, boxShadow: '0 1px 3px rgba(30,42,34,.25)' }} />
+              </button>
+            </div>
+          </div>
+          )}
 
           {/* Areas section */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${T.stone100}`, paddingTop: 20 }}>

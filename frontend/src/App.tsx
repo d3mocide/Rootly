@@ -10,6 +10,7 @@ import { fetchAreas, apiCreateArea, apiDeleteArea } from './api/areas';
 import type { Area } from './types/area';
 import { AuthScreen } from './screens/AuthScreen';
 import { UnitsContext } from './units';
+import { LayoutDebugger } from './components/LayoutDebugger';
 
 // Mobile
 import { TabBar } from './screens/mobile/TabBar';
@@ -202,7 +203,7 @@ export default function App() {
 
   return (
     <UnitsContext.Provider value={currentUser?.units ?? 'imperial'}>
-    <div style={{ height: '100dvh', position: 'relative', overflow: 'hidden' }}>
+    <div data-debug-layer="shell" style={{ height: '100dvh', position: 'relative', overflow: 'hidden' }}>
       {isDesktop ? (
         <div style={{ display: 'flex', height: '100dvh', position: 'relative', overflow: 'hidden' }}>
           <Sidebar
@@ -337,6 +338,9 @@ export default function App() {
       )}
 
       {toast && <Toast message={toast} />}
+
+      {/* Admin-only PWA layout diagnostics overlay */}
+      <LayoutDebugger allowed={currentUser?.role === 'admin'} />
     </div>
     </UnitsContext.Provider>
   );
