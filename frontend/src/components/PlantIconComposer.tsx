@@ -333,11 +333,11 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
               type="button"
               title="None"
               onClick={() => setBloomHead(null)}
-              style={{ ...tileStyle(!currentBloomHead), aspectRatio: '1', padding: 4 }}
+              style={{ ...tileStyle(!currentBloomHead), aspectRatio: '1', padding: 2 }}
               onMouseEnter={e => { if (currentBloomHead) e.currentTarget.style.background = T.linen; }}
               onMouseLeave={e => { if (currentBloomHead) e.currentTarget.style.background = T.card; }}
             >
-              <span style={{ fontSize: 16, lineHeight: 1, color: T.ink3 }}>—</span>
+              <span style={{ fontSize: 14, lineHeight: 1, color: T.ink3 }}>—</span>
             </button>
             {ALL_HEADS.map(h => {
               const sel = currentBloomHead === h;
@@ -347,11 +347,11 @@ export function PlantIconComposer({ value, onChange, plantName }: PlantIconCompo
                   type="button"
                   title={HEAD_LABELS[h]}
                   onClick={() => setBloomHead(h)}
-                  style={{ ...tileStyle(sel), aspectRatio: '1', padding: 4 }}
+                  style={{ ...tileStyle(sel), aspectRatio: '1', padding: 2 }}
                   onMouseEnter={e => { if (!sel) e.currentTarget.style.background = T.linen; }}
                   onMouseLeave={e => { if (!sel) e.currentTarget.style.background = T.card; }}
                 >
-                  <PlantIcon recipe={{ base: currentBase, bloom: { head: h, petal: BLOOM_SHAPE_PREVIEW } }} size={32} />
+                  <PlantIcon recipe={{ base: currentBase, bloom: { head: h, petal: BLOOM_SHAPE_PREVIEW } }} size={24} />
                 </button>
               );
             })}
