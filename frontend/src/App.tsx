@@ -225,13 +225,15 @@ export default function App() {
           <AddPlantModal isOpen={addOpenDesktop} onClose={() => setAddOpenDesktop(false)} onAdd={handleAddPlant} areas={areas} />
         </div>
       ) : (
-        <div style={{ height: '100%', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {!profile ? (
             <>
-              {tab === 'today'  && <TodayScreen plants={plants} onOpen={setProfile} onWater={onWater} onWaterAll={waterAll} currentUser={currentUser} onSettings={() => setSettingsOpen(true)} />}
-              {tab === 'plants' && <PlantsScreen plants={plants} onOpen={setProfile} areas={areas} />}
-              {tab === 'growth' && <GrowthScreen plants={plants} onOpen={setProfile} />}
-              {tab === 'care'   && <CareScreen plants={plants} onOpen={setProfile} />}
+              <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+                {tab === 'today'  && <TodayScreen plants={plants} onOpen={setProfile} onWater={onWater} onWaterAll={waterAll} currentUser={currentUser} onSettings={() => setSettingsOpen(true)} />}
+                {tab === 'plants' && <PlantsScreen plants={plants} onOpen={setProfile} areas={areas} />}
+                {tab === 'growth' && <GrowthScreen plants={plants} onOpen={setProfile} />}
+                {tab === 'care'   && <CareScreen plants={plants} onOpen={setProfile} />}
+              </div>
               <TabBar active={tab} onChange={t => { setTab(t); setProfile(null); }} onAdd={() => setAddOpen(true)} />
             </>
           ) : (
