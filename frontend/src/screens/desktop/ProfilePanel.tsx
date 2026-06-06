@@ -12,9 +12,11 @@ interface Props {
   onEdit: (p: Plant) => void;
   onDelete: (p: Plant) => void;
   onLogGrowth: (p: Plant) => void;
+  onFertilize: (p: Plant) => void;
+  onPrune: (p: Plant) => void;
 }
 
-export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete, onLogGrowth }: Props) {
+export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete, onLogGrowth, onFertilize, onPrune }: Props) {
   const [showMenu, setShowMenu] = useState(false);
   const units = useUnits();
 
@@ -37,8 +39,19 @@ export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete, onLogG
     transition: 'background .15s',
   };
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
   const activity = [
-    { icon: 'droplet', text: 'Watered', when: plant.lastWater, color: '#5E8FB8' },
+    { icon: 'droplet', text: 'Watered', when: formatDate(plant.lastWater), color: '#5E8FB8' },
+    ...(plant.lastFertilize ? [{ icon: 'sparkles', text: 'Fertilized', when: formatDate(plant.lastFertilize), color: '#C8A2C8' }] : []),
+    ...(plant.lastPrune ? [{ icon: 'scissors', text: 'Pruned', when: formatDate(plant.lastPrune), color: '#A0A0A0' }] : []),
     { icon: 'ruler', text: `Logged growth +${formatLength(2, units)}`, when: '2 weeks ago', color: T.fern },
     { icon: 'pencil', text: `Moved to ${plant.room}`, when: '1 month ago', color: T.ink3 },
   ];
@@ -66,7 +79,13 @@ export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete, onLogG
               <Icon name="x" size={19} color={T.ink} />
             </button>
             <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
-              <Button variant="primary" size="sm" icon="droplet" onClick={() => onWater(plant)}>Water now</Button>
+              <Button variant="primary" size="sm" onClick={() => onWater(plant)}>Water now</Button>
+              {plant.fertilizeEvery !== null && (
+                <Button variant="secondary" size="sm" onClick={() => onFertilize(plant)}>Fertilize</Button>
+              )}
+              {plant.pruneEvery !== null && (
+                <Button variant="secondary" size="sm" onClick={() => onPrune(plant)}>Prune</Button>
+              )}
               <div style={{ position: 'relative' }}>
                 <button onClick={() => setShowMenu(!showMenu)} style={glassBtn}>
                   <Icon name="more" size={19} color={T.ink} />
@@ -146,18 +165,33 @@ export function ProfilePanel({ plant, onClose, onWater, onEdit, onDelete, onLogG
           </div>
 
           {/* care stats */}
-          <div style={{ display: 'flex', gap: 12, marginTop: 14 }}>
-            {(['droplets', 'sun', 'home'] as const).map((icon, i) => {
-              const values = [`Every ${plant.every}d`, plant.light.split(',')[0], plant.room];
-              const labels = ['Watering', 'Light', 'Room'];
-              return (
-                <div key={icon} style={{ flex: 1, background: T.card, borderRadius: 14, padding: '12px 14px', boxShadow: '0 1px 2px rgba(30,42,34,.05)' }}>
-                  <Icon name={icon} size={18} color={T.fern} />
-                  <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color: T.ink, marginTop: 8 }}>{values[i]}</div>
-                  <div style={{ fontFamily: T.sans, fontSize: 11.5, color: T.ink3, marginTop: 1 }}>{labels[i]}</div>
-                </div>
-              );
-            })}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginTop: 14 }}>
+            <div style={{ background: T.card, borderRadius: 14, padding: '12px 14px', boxShadow: '0 1px 2px rgba(30,42,34,.05)' }}>
+              <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, textTransform: 'uppercase', letterSpacing: '.05em' }}>Watering</div>
+              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color: T.ink, marginTop: 6 }}>Every {plant.every}d</div>
+            </div>
+            {plant.fertilizeEvery !== null && (
+              <div style={{ background: T.card, borderRadius: 14, padding: '12px 14px', boxShadow: '0 1px 2px rgba(30,42,34,.05)' }}>
+                <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, textTransform: 'uppercase', letterSpacing: '.05em' }}>Fertilizing</div>
+                <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color: T.ink, marginTop: 6 }}>Every {plant.fertilizeEvery}d</div>
+              </div>
+            )}
+            {plant.pruneEvery !== null && (
+              <div style={{ background: T.card, borderRadius: 14, padding: '12px 14px', boxShadow: '0 1px 2px rgba(30,42,34,.05)' }}>
+                <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, textTransform: 'uppercase', letterSpacing: '.05em' }}>Pruning</div>
+                <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color: T.ink, marginTop: 6 }}>Every {plant.pruneEvery}d</div>
+              </div>
+            )}
+            {plant.light && (
+              <div style={{ background: T.card, borderRadius: 14, padding: '12px 14px', boxShadow: '0 1px 2px rgba(30,42,34,.05)' }}>
+                <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, textTransform: 'uppercase', letterSpacing: '.05em' }}>Light</div>
+                <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color: T.ink, marginTop: 6 }}>{plant.light.split(',')[0]}</div>
+              </div>
+            )}
+            <div style={{ background: T.card, borderRadius: 14, padding: '12px 14px', boxShadow: '0 1px 2px rgba(30,42,34,.05)' }}>
+              <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: T.ink3, textTransform: 'uppercase', letterSpacing: '.05em' }}>Room</div>
+              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color: T.ink, marginTop: 6 }}>{plant.room}</div>
+            </div>
           </div>
 
           {/* growth */}

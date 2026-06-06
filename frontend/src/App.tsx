@@ -5,7 +5,7 @@ import { Toast, SettingsModal, AddPlantModal, EditPlantModal, LogGrowthModal, Ic
 import { useBreakpoint } from './hooks/useBreakpoint';
 import { getToken, getMe, apiLogout, checkSetup } from './api/auth';
 import type { UserResponse } from './api/auth';
-import { fetchPlants, apiWaterPlant, apiCreatePlant, apiUpdatePlant, apiDeletePlant } from './api/plants';
+import { fetchPlants, apiWaterPlant, apiCreatePlant, apiUpdatePlant, apiDeletePlant, apiFertilizePlant, apiPrunePlant } from './api/plants';
 import { fetchAreas, apiCreateArea, apiDeleteArea } from './api/areas';
 import type { Area } from './types/area';
 import { AuthScreen } from './screens/AuthScreen';
@@ -29,7 +29,8 @@ import { Sidebar } from './screens/desktop/Sidebar';
 import { TodayDesktop } from './screens/desktop/TodayDesktop';
 import { PlantsDesktop } from './screens/desktop/PlantsDesktop';
 import { ProfilePanel } from './screens/desktop/ProfilePanel';
-import { PlaceholderDesktop } from './screens/desktop/PlaceholderDesktop';
+import { GrowthDesktop } from './screens/desktop/GrowthDesktop';
+import { CareDesktop } from './screens/desktop/CareDesktop';
 
 export default function App() {
   const [plants, setPlants] = useState<Plant[]>([]);
@@ -112,6 +113,28 @@ export default function App() {
       waterPlant(p).then(() => flash(`Logged. ${p.name} watered today.`));
     } else {
       setWaterTarget(p);
+    }
+  };
+
+  const fertilizePlant = async (p: Plant) => {
+    try {
+      const updated = await apiFertilizePlant(p.id);
+      setPlants(ps => ps.map(x => x.id === p.id ? updated : x));
+      setProfile(cur => cur?.id === p.id ? updated : cur);
+      flash(`Logged. ${p.name} fertilized today.`);
+    } catch {
+      flash('Failed to log fertilizing.');
+    }
+  };
+
+  const prunePlant = async (p: Plant) => {
+    try {
+      const updated = await apiPrunePlant(p.id);
+      setPlants(ps => ps.map(x => x.id === p.id ? updated : x));
+      setProfile(cur => cur?.id === p.id ? updated : cur);
+      flash(`Logged. ${p.name} pruned today.`);
+    } catch {
+      flash('Failed to log pruning.');
     }
   };
 
@@ -218,8 +241,9 @@ export default function App() {
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {tab === 'today'  && <TodayDesktop plants={plants} onOpen={setProfile} onWater={onWater} onWaterAll={waterAll} currentUser={currentUser} />}
             {tab === 'plants' && <PlantsDesktop plants={plants} onOpen={setProfile} areas={areas} />}
-            {(tab === 'growth' || tab === 'care') && <PlaceholderDesktop tab={tab} />}
-            {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} onLogGrowth={setGrowthTarget} />}
+            {tab === 'growth' && <GrowthDesktop plants={plants} onOpen={setProfile} onLogGrowth={setGrowthTarget} />}
+            {tab === 'care'   && <CareDesktop plants={plants} onOpen={setProfile} onWater={onWater} onFertilize={fertilizePlant} onPrune={prunePlant} />}
+            {live && <ProfilePanel plant={live} onClose={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} onLogGrowth={setGrowthTarget} onFertilize={fertilizePlant} onPrune={prunePlant} />}
           </div>
           <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} currentUser={currentUser} onUpdateUser={setCurrentUser} onLogout={handleLogout} flash={flash} areas={areas} onAddArea={handleAddArea} onDeleteArea={handleDeleteArea} />
           <AddPlantModal isOpen={addOpenDesktop} onClose={() => setAddOpenDesktop(false)} onAdd={handleAddPlant} areas={areas} />
@@ -232,12 +256,21 @@ export default function App() {
                 {tab === 'today'  && <TodayScreen plants={plants} onOpen={setProfile} onWater={onWater} onWaterAll={waterAll} currentUser={currentUser} onSettings={() => setSettingsOpen(true)} />}
                 {tab === 'plants' && <PlantsScreen plants={plants} onOpen={setProfile} areas={areas} />}
                 {tab === 'growth' && <GrowthScreen plants={plants} onOpen={setProfile} />}
-                {tab === 'care'   && <CareScreen plants={plants} onOpen={setProfile} />}
+                {tab === 'care'   && <CareScreen plants={plants} onOpen={setProfile} onWater={onWater} onFertilize={fertilizePlant} onPrune={prunePlant} />}
               </div>
               <TabBar active={tab} onChange={t => { setTab(t); setProfile(null); }} onAdd={() => setAddOpen(true)} />
             </>
           ) : (
-            <ProfileScreen plant={profile} onBack={() => setProfile(null)} onWater={onWater} onEdit={setEditTarget} onDelete={setConfirmDeleteTarget} onLogGrowth={setGrowthTarget} />
+            <ProfileScreen
+              plant={profile}
+              onBack={() => setProfile(null)}
+              onWater={onWater}
+              onEdit={setEditTarget}
+              onDelete={setConfirmDeleteTarget}
+              onLogGrowth={setGrowthTarget}
+              onFertilize={fertilizePlant}
+              onPrune={prunePlant}
+            />
           )}
 
           {addOpen && <AddPlantScreen onAdd={handleAddPlant} onClose={() => setAddOpen(false)} areas={areas} />}

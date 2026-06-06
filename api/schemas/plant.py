@@ -37,10 +37,14 @@ class PlantCreate(BaseModel):
     max_temp: Optional[float] = None
     min_env_humid: Optional[float] = None
     max_env_humid: Optional[float] = None
+    fertilize_every: Optional[int] = None
+    last_fertilize: Optional[datetime] = None
+    prune_every: Optional[int] = None
+    last_prune: Optional[datetime] = None
 
-    @field_validator("last_water", mode="before")
+    @field_validator("last_water", "last_fertilize", "last_prune", mode="before")
     @classmethod
-    def validate_last_water(cls, v):
+    def validate_datetimes(cls, v):
         return _normalize_last_water(v)
 
 
@@ -63,10 +67,14 @@ class PlantUpdate(BaseModel):
     max_temp: Optional[float] = None
     min_env_humid: Optional[float] = None
     max_env_humid: Optional[float] = None
+    fertilize_every: Optional[int] = None
+    last_fertilize: Optional[datetime] = None
+    prune_every: Optional[int] = None
+    last_prune: Optional[datetime] = None
 
-    @field_validator("last_water", mode="before")
+    @field_validator("last_water", "last_fertilize", "last_prune", mode="before")
     @classmethod
-    def validate_last_water(cls, v):
+    def validate_datetimes(cls, v):
         return _normalize_last_water(v)
 
 
@@ -92,6 +100,10 @@ class PlantResponse(BaseModel):
     max_temp: Optional[float] = None
     min_env_humid: Optional[float] = None
     max_env_humid: Optional[float] = None
+    fertilize_every: Optional[int] = None
+    last_fertilize: Optional[datetime] = None
+    prune_every: Optional[int] = None
+    last_prune: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 

@@ -61,16 +61,7 @@ export function Sidebar({ active, onNav, onAdd, currentUser, plantsCount, onLogo
         })}
       </div>
 
-      {/* seasonal card */}
-      <div style={{ marginTop: 24, background: T.sunSoft, border: '1px solid #F0D9B4', borderRadius: 16, padding: '14px 15px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="cloudSun" size={18} color={T.sunDeep} stroke={2} />
-          <span style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 700, color: '#6b4a14' }}>Autumn is coming</span>
-        </div>
-        <p style={{ fontFamily: T.sans, fontSize: 12.5, lineHeight: 1.5, color: '#7a5a25', margin: '7px 0 0' }}>
-          Rootly is easing back watering as days get shorter.
-        </p>
-      </div>
+
 
       {/* account */}
       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 11, padding: '10px 8px', borderTop: `1px solid ${T.stone100}` }}>

@@ -77,3 +77,27 @@ async def water_plant(plant_id: UUID, user: User = Depends(get_current_user), db
     await db.commit()
     await db.refresh(plant)
     return plant
+
+
+@router.post("/{plant_id}/fertilize", response_model=PlantResponse)
+async def fertilize_plant(plant_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Plant).where(Plant.id == plant_id, Plant.user_id == user.id))
+    plant = result.scalar_one_or_none()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plant not found")
+    plant.last_fertilize = datetime.now(timezone.utc).replace(tzinfo=None)
+    await db.commit()
+    await db.refresh(plant)
+    return plant
+
+
+@router.post("/{plant_id}/prune", response_model=PlantResponse)
+async def prune_plant(plant_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Plant).where(Plant.id == plant_id, Plant.user_id == user.id))
+    plant = result.scalar_one_or_none()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plant not found")
+    plant.last_prune = datetime.now(timezone.utc).replace(tzinfo=None)
+    await db.commit()
+    await db.refresh(plant)
+    return plant

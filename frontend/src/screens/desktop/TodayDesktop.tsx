@@ -84,8 +84,8 @@ export function TodayDesktop({ plants, onOpen, onWater, onWaterAll, currentUser 
         <div>
           {/* hero banner */}
           <div style={{ background: T.canopy, borderRadius: 24, padding: '28px 30px', color: T.onDark, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', right: -20, top: -30, opacity: 0.13 }}>
-              <Icon name="droplet" size={190} color="#fff" stroke={1.1} />
+            <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', opacity: 0.09 }}>
+              <Icon name="droplet" size={120} color="#fff" stroke={1.1} />
             </div>
             <div style={{ position: 'relative' }}>
               <div style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 600, color: T.sageSoft }}>This morning</div>

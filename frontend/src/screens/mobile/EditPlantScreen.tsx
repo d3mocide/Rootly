@@ -20,6 +20,8 @@ export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
   const [every, setEvery] = useState(plant.every);
   const [light, setLight] = useState(plant.light);
   const [note, setNote] = useState(plant.note);
+  const [fertilizeEvery, setFertilizeEvery] = useState<number | null>(plant.fertilizeEvery);
+  const [pruneEvery, setPruneEvery] = useState<number | null>(plant.pruneEvery);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +43,8 @@ export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
         every: Number(every) || 7,
         light: light.trim(),
         note: note.trim(),
+        fertilizeEvery: fertilizeEvery ?? null,
+        pruneEvery: pruneEvery ?? null,
       });
       onClose();
     } catch (err: unknown) {
@@ -193,6 +197,64 @@ export function EditPlantScreen({ onClose, plant, onEdit, areas }: Props) {
             onFocus={e => e.currentTarget.style.borderColor = T.fern}
             onBlur={e => e.currentTarget.style.borderColor = T.stone200}
           />
+        </div>
+
+        {/* Fertilize schedule */}
+        <div>
+          <label style={labelStyle}>Fertilize every (days)</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input
+              type="number"
+              value={fertilizeEvery ?? ''}
+              onChange={e => setFertilizeEvery(e.target.value ? Number(e.target.value) : null)}
+              placeholder="e.g. 30"
+              min={1}
+              style={{ ...inputStyle, flex: 1 }}
+              onFocus={e => e.currentTarget.style.borderColor = T.fern}
+              onBlur={e => e.currentTarget.style.borderColor = T.stone200}
+            />
+            {fertilizeEvery !== null && (
+              <button type="button" onClick={() => setFertilizeEvery(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: T.sans, fontSize: 13, color: T.ink3, whiteSpace: 'nowrap' }}>
+                Not scheduled
+              </button>
+            )}
+          </div>
+          {fertilizeEvery === null && (
+            <button type="button" onClick={() => setFertilizeEvery(30)}
+              style={{ marginTop: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: T.sans, fontSize: 13, color: T.fern }}>
+              + Set a schedule
+            </button>
+          )}
+        </div>
+
+        {/* Prune schedule */}
+        <div>
+          <label style={labelStyle}>Prune every (days)</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input
+              type="number"
+              value={pruneEvery ?? ''}
+              onChange={e => setPruneEvery(e.target.value ? Number(e.target.value) : null)}
+              placeholder="e.g. 60"
+              min={1}
+              style={{ ...inputStyle, flex: 1 }}
+              onFocus={e => e.currentTarget.style.borderColor = T.fern}
+              onBlur={e => e.currentTarget.style.borderColor = T.stone200}
+            />
+            {pruneEvery !== null && (
+              <button type="button" onClick={() => setPruneEvery(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: T.sans, fontSize: 13, color: T.ink3, whiteSpace: 'nowrap' }}>
+                Not scheduled
+              </button>
+            )}
+          </div>
+          {pruneEvery === null && (
+            <button type="button" onClick={() => setPruneEvery(60)}
+              style={{ marginTop: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: T.sans, fontSize: 13, color: T.fern }}>
+              + Set a schedule
+            </button>
+          )}
         </div>
       </form>
     </div>

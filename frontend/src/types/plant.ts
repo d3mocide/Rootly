@@ -75,6 +75,10 @@ export interface Plant {
   maxTemp?: number | null;
   minEnvHumid?: number | null;
   maxEnvHumid?: number | null;
+  fertilizeEvery: number | null;
+  lastFertilize: string;
+  pruneEvery: number | null;
+  lastPrune: string;
 }
 
 export const STATUS_META: Record<PlantStatus, { label: string; color: string; soft: string; text: string }> = {

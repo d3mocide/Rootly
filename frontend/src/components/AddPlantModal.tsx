@@ -23,6 +23,8 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
   const [note, setNote] = useState('');
   const [every, setEvery] = useState(7);
   const [overrideEvery, setOverrideEvery] = useState(false);
+  const [fertilizeEvery, setFertilizeEvery] = useState<number | null>(null);
+  const [pruneEvery, setPruneEvery] = useState<number | null>(null);
 
   const [speciesQuery, setSpeciesQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PlantSearchResult[]>([]);
@@ -171,9 +173,14 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
         maxTemp: selectedProfile?.max_temp,
         minEnvHumid: selectedProfile?.min_env_humid,
         maxEnvHumid: selectedProfile?.max_env_humid,
+        fertilizeEvery,
+        lastFertilize: fertilizeEvery ? new Date().toISOString() : '',
+        pruneEvery,
+        lastPrune: pruneEvery ? new Date().toISOString() : '',
       });
       setName(''); setRoom(''); setNote(''); setEvery(7);
       setSpeciesQuery(''); setSelectedProfile(null); setOverrideEvery(false); setIcon(undefined);
+      setFertilizeEvery(null); setPruneEvery(null);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to add plant.');
@@ -377,6 +384,41 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
               <label style={labelStyle}>Icon</label>
               <PlantIconComposer value={icon} onChange={setIcon} plantName={name || undefined} />
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label style={labelStyle}>Fertilize schedule</label>
+                <select
+                  value={fertilizeEvery ?? ''}
+                  onChange={e => setFertilizeEvery(e.target.value ? Number(e.target.value) : null)}
+                  style={inputStyle}
+                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+                >
+                  <option value="">No schedule</option>
+                  <option value="14">Every 14 days (2 weeks)</option>
+                  <option value="30">Every 30 days (1 month)</option>
+                  <option value="60">Every 60 days (2 months)</option>
+                  <option value="90">Every 90 days (Quarterly)</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Prune schedule</label>
+                <select
+                  value={pruneEvery ?? ''}
+                  onChange={e => setPruneEvery(e.target.value ? Number(e.target.value) : null)}
+                  style={inputStyle}
+                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
+                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
+                >
+                  <option value="">No schedule</option>
+                  <option value="30">Every 30 days (1 month)</option>
+                  <option value="90">Every 90 days (Quarterly)</option>
+                  <option value="180">Every 180 days (6 months)</option>
+                  <option value="365">Every 365 days (Yearly)</option>
+                </select>
+              </div>
+            </div>
+
             <div>
               <label style={labelStyle}>Room</label>
               <select

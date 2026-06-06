@@ -19,8 +19,9 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
   const [icon, setIcon] = useState<IconRecipe | undefined>(plant.icon);
   const [room, setRoom] = useState(plant.room);
   const [every, setEvery] = useState(plant.every);
-  const [light, setLight] = useState(plant.light);
   const [note, setNote] = useState(plant.note);
+  const [fertilizeEvery, setFertilizeEvery] = useState<number | null>(plant.fertilizeEvery);
+  const [pruneEvery, setPruneEvery] = useState<number | null>(plant.pruneEvery);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,8 +43,9 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
         icon,
         room: room.trim(),
         every: Number(every) || 7,
-        light: light.trim(),
         note: note.trim(),
+        fertilizeEvery: fertilizeEvery ?? null,
+        pruneEvery: pruneEvery ?? null,
       });
       onClose();
     } catch (err: unknown) {
@@ -197,33 +199,6 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
               </select>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Water every (days)</label>
-                <input
-                  type="number"
-                  value={every}
-                  onChange={e => setEvery(Number(e.target.value))}
-                  placeholder="e.g. 7"
-                  min={1}
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>Light level</label>
-                <input
-                  type="text"
-                  value={light}
-                  onChange={e => setLight(e.target.value)}
-                  placeholder="e.g. Bright, indirect"
-                  style={inputStyle}
-                  onFocus={e => e.currentTarget.style.borderColor = T.fern}
-                  onBlur={e => e.currentTarget.style.borderColor = T.stone300}
-                />
-              </div>
-            </div>
 
             <div>
               <label style={labelStyle}>Notes</label>
@@ -236,6 +211,29 @@ export function EditPlantModal({ isOpen, onClose, plant, onEdit, areas }: EditPl
                 onFocus={e => e.currentTarget.style.borderColor = T.fern}
                 onBlur={e => e.currentTarget.style.borderColor = T.stone300}
               />
+            </div>
+
+            {/* Care schedules */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+              <div>
+                <label style={labelStyle}>Water every (days)</label>
+                <input type="number" value={every} onChange={e => setEvery(Number(e.target.value))} placeholder="7" min={1}
+                  style={inputStyle} onFocus={e => e.currentTarget.style.borderColor = T.fern} onBlur={e => e.currentTarget.style.borderColor = T.stone300} />
+              </div>
+              <div>
+                <label style={labelStyle}>Fertilize every (days)</label>
+                <input type="number" value={fertilizeEvery ?? ''} onChange={e => setFertilizeEvery(e.target.value ? Number(e.target.value) : null)}
+                  placeholder="e.g. 30" min={1} style={inputStyle}
+                  onFocus={e => e.currentTarget.style.borderColor = T.fern} onBlur={e => e.currentTarget.style.borderColor = T.stone300} />
+                {fertilizeEvery === null && <span style={{ fontFamily: T.sans, fontSize: 11.5, color: T.ink3 }}>Not scheduled</span>}
+              </div>
+              <div>
+                <label style={labelStyle}>Prune every (days)</label>
+                <input type="number" value={pruneEvery ?? ''} onChange={e => setPruneEvery(e.target.value ? Number(e.target.value) : null)}
+                  placeholder="e.g. 60" min={1} style={inputStyle}
+                  onFocus={e => e.currentTarget.style.borderColor = T.fern} onBlur={e => e.currentTarget.style.borderColor = T.stone300} />
+                {pruneEvery === null && <span style={{ fontFamily: T.sans, fontSize: 11.5, color: T.ink3 }}>Not scheduled</span>}
+              </div>
             </div>
           </div>
 

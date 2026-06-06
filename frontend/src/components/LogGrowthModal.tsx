@@ -157,6 +157,46 @@ export function LogGrowthModal({ isOpen, onClose, plant, onLog }: LogGrowthModal
                   {lengthUnit(units)}
                 </span>
               </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                {(units === 'imperial' ? [-1, -0.5, 0.5, 1, 2] : [-5, -1, 1, 5, 10]).map(adj => {
+                  const label = adj > 0 ? `+${adj}` : `${adj}`;
+                  return (
+                    <button
+                      key={adj}
+                      type="button"
+                      onClick={() => {
+                        const currentVal = parseFloat(height) || 0;
+                        const newVal = Math.max(0, currentVal + adj);
+                        setHeight(String(Math.round(newVal * 100) / 100));
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 999,
+                        background: T.linen,
+                        border: `1.5px solid ${T.stone200}`,
+                        fontFamily: T.sans,
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: T.ink2,
+                        cursor: 'pointer',
+                        transition: 'all .14s cubic-bezier(.22,.61,.36,1)',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = T.fern;
+                        e.currentTarget.style.background = T.card;
+                        e.currentTarget.style.color = T.ink;
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = T.stone200;
+                        e.currentTarget.style.background = T.linen;
+                        e.currentTarget.style.color = T.ink2;
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

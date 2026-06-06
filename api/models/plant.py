@@ -40,4 +40,12 @@ class Plant(Base):
     min_env_humid = Column(Float, nullable=True)
     max_env_humid = Column(Float, nullable=True)
 
+    # Fertilizing schedule
+    last_fertilize = Column(DateTime, nullable=True)
+    fertilize_every = Column(Integer, nullable=True)  # days; None = not scheduled
+
+    # Pruning schedule
+    last_prune = Column(DateTime, nullable=True)
+    prune_every = Column(Integer, nullable=True)  # days; None = not scheduled
+
     user = relationship("User", back_populates="plants")
