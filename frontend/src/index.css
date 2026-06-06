@@ -10,17 +10,30 @@
   box-sizing: border-box;
 }
 
-html, body {
+html {
   margin: 0;
   padding: 0;
-  height: 100%;
+  /* 100% resolves to safe-content area on iOS PWA, not the full viewport — use dvh to match the shell */
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
   background: #FBFAF6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #FBFAF6;
+}
+
 #root {
   height: 100%;
+  overflow: hidden;
 }
 
 button {
