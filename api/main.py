@@ -11,6 +11,7 @@ from routes.plants import router as plants_router
 from routes.admin import router as admin_router
 from routes.areas import router as areas_router
 from routes.plantbook import router as plantbook_router
+from routes.identify import router as identify_router
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ app.include_router(plants_router)
 app.include_router(admin_router)
 app.include_router(areas_router)
 app.include_router(plantbook_router)
+app.include_router(identify_router)
 
 
 @app.exception_handler(SQLAlchemyError)

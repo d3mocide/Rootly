@@ -6,6 +6,7 @@ import type { Plant, IconRecipe } from '../../types/plant';
 import type { Area } from '../../types/area';
 import { searchPlantbook, getPlantbookDetail, luxToLabel, suggestEvery, suggestIconFromSpecies } from '../../api/plantbook';
 import type { PlantSearchResult, PlantProfile } from '../../api/plantbook';
+import { identifyPlant } from '../../api/identify';
 import { useUnits, formatTempRange } from '../../units';
 
 interface Props {
@@ -33,10 +34,11 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [identifying, setIdentifying] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
   const justSelectedRef = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (justSelectedRef.current) {
@@ -102,6 +104,43 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
     setShowDropdown(false);
     setEvery(7);
     setOverrideEvery(false);
+  };
+
+  const handleIdentifyFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setIdentifying(true);
+    setError(null);
+    try {
+      const result = await identifyPlant(file);
+      if (!result.scientific_name) {
+        setError('Could not identify a plant in that photo. Try a clearer shot.');
+        return;
+      }
+      if (result.profile) {
+        setSelectedProfile(result.profile);
+        setSpeciesQuery(result.profile.display_name);
+        justSelectedRef.current = true;
+        if (!overrideEvery) setEvery(suggestEvery(result.profile.min_soil_moist));
+        const suggestion = suggestIconFromSpecies(result.profile.display_name, result.profile.alias ?? '');
+        if (suggestion.base || suggestion.bloom) {
+          setIcon(prev => ({
+            base: suggestion.base ?? (prev?.base ?? 'fenestrated-tropical'),
+            variegation: prev?.variegation,
+            bloom: suggestion.bloom ?? prev?.bloom,
+            palette: prev?.palette,
+          }));
+        }
+      } else {
+        setSpeciesQuery(result.common_name || result.scientific_name);
+        justSelectedRef.current = true;
+      }
+    } catch {
+      setError('Identification failed. Check your connection and try again.');
+    } finally {
+      setIdentifying(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -177,7 +216,35 @@ export function AddPlantScreen({ onClose, onAdd, areas }: Props) {
 
         {/* Species search */}
         <div ref={searchRef} style={{ position: 'relative' }}>
-          <label style={labelStyle}>Species</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: 'none' }}
+            onChange={handleIdentifyFile}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+            <label style={{ ...labelStyle, marginBottom: 0 }}>Species</label>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={identifying}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: 'none', border: `1px solid ${T.stone200}`,
+                borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
+                fontFamily: T.sans, fontSize: 12, fontWeight: 600, color: T.ink2,
+                opacity: identifying ? 0.6 : 1,
+              }}
+            >
+              {identifying
+                ? <div style={{ width: 12, height: 12, border: `2px solid ${T.stone200}`, borderTopColor: T.fern, borderRadius: '50%', animation: 'spin .6s linear infinite' }} />
+                : <Icon name="camera" size={13} color={T.ink3} />
+              }
+              {identifying ? 'Identifying…' : 'Identify'}
+            </button>
+          </div>
           <div style={{ position: 'relative' }}>
             <input
               type="text"
