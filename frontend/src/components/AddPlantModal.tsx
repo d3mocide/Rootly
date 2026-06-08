@@ -77,7 +77,7 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
 
   const handleSelectSpecies = async (result: PlantSearchResult) => {
     justSelectedRef.current = true;
-    setSpeciesQuery(result.display_name);
+    setSpeciesQuery(result.alias || result.display_name);
     setShowDropdown(false);
     setSelectedProfile(null);
     setProfileLoading(true);
@@ -329,8 +329,8 @@ export function AddPlantModal({ isOpen, onClose, onAdd, areas }: AddPlantModalPr
                       onMouseEnter={e => e.currentTarget.style.background = T.linen}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
-                      <span style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 600, color: T.ink }}>{r.display_name}</span>
-                      {r.alias && <span style={{ fontFamily: T.sans, fontSize: 12, color: T.ink3 }}>{r.alias}</span>}
+                      {r.alias && <span style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 600, color: T.ink }}>{r.alias}</span>}
+                      <span style={{ fontFamily: T.sans, fontSize: 12, color: T.ink3 }}>{r.display_name}</span>
                     </button>
                   ))}
                 </div>
